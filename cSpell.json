@@ -1,18 +1,21 @@
 {
   "words": [
+    "idxes",
     "imlength",
     "imshow",
     "imsize",
-    "Mujoco",
-    "rlkit",
-    "pycodestyle",
-    "pyflakes",
-    "pyupgrade",
-    "pydocstyle",
+    "ipynb",
     "isort",
+    "jaxtyping",
+    "Mujoco",
+    "obses",
+    "probs",
+    "pycodestyle",
+    "pydocstyle",
+    "pyflakes",
     "pylint",
     "pyproject",
-    "ipynb",
-    "jaxtyping"
+    "pyupgrade",
+    "rlkit"
   ]
 }

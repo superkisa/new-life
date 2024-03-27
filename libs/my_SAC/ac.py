@@ -1,18 +1,19 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import numpy as np
-
 from collections import deque
+
+import numpy as np
+import torch
+from torch import nn, optim
+from torch.distributions.normal import Normal
+from typing_extensions import override
 
 
 class ReplayBuffer:
-    def __init__(self, size):
-        """
-        Create Replay buffer.
+    def __init__(self, size: int) -> None:
+        """Creates Replay buffer.
+
         Parameters
         ----------
-        size: int
+        size:
             Max number of transitions to store in the buffer. When the buffer
             overflows the old memories are dropped.
         """
@@ -25,7 +26,6 @@ class ReplayBuffer:
     def add(self, obs_t, action, reward, obs_tp1, done):
         data = (obs_t, action, reward, obs_tp1, done)
         self._storage.append(data)
-
 
     def _encode_sample(self, idxes):
         obses_t, actions, rewards, obses_tp1, dones = [], [], [], [], []
@@ -66,7 +66,9 @@ class ReplayBuffer:
             the end of an episode and 0 otherwise.
         """
 
-        idx = np.random.choice(np.arange(0, len(self._storage)), replace=True, size=batch_size)
+        idx = np.random.choice(
+            np.arange(0, len(self._storage)), replace=True, size=batch_size
+        )
 
         obs_batch = []
         act_batch = []
@@ -87,99 +89,49 @@ class ReplayBuffer:
         return obs_batch, act_batch, rew_batch, next_obs_batch, done_mask
 
 
-
 class Actor(nn.Module):
-    def __init__(self, dim_state, dim_action):
-        super().__init__() #Actor, self
-        # Define the layers for the Actor network
-        # Example architecture: Dense -> ReLU -> Dense -> Softmax
-        # Adjust the architecture based on your problem
+    def __init__(self, dim_state, dim_action, hidden_dim=64) -> None:
+        super().__init__()
 
         self.dim_state = dim_state
         self.dim_action = dim_action
-        self.hidden_dim1 = 64
+        self.hidden_dim1 = hidden_dim
 
         self.layer_one = nn.Sequential(
             nn.Linear(self.dim_state, self.hidden_dim1),
             nn.LeakyReLU(0.1),
             nn.Linear(self.hidden_dim1, self.hidden_dim1),
             nn.LeakyReLU(0.2),
-            nn.Linear(self.hidden_dim1, self.hidden_dim1),
+            nn.Linear(self.hidden_dim1, self.dim_action * 2),
             nn.LeakyReLU(0.01),
         )
 
-
-        # self.input_layer = nn.Linear(self.dim_state, self.hidden_dim1)
-        # self.leaky_relu1 = nn.LeakyReLU(0.1)
-
-        # self.linear2 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.leaky_relu2 = nn.LeakyReLU(0.2)
-
-        # self.linear3 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.leaky_relu3 = nn.LeakyReLU(0.1)
-
-        # self.linear4 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.leaky_relu4 = nn.LeakyReLU(0.01)
-
-        # self.linear5 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.leaky_relu5 = nn.LeakyReLU(0.1)
-
-        # self.linear6 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.leaky_relu6 = nn.LeakyReLU(0.2)
-
-        # self.linear7 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.leaky_relu7 = nn.LeakyReLU(0.3)
-
-        # self.linear8 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.leaky_relu8 = nn.LeakyReLU(0.01)
-
-        # self.linear9 = nn.Linear(self.hidden_dim1, self.dim_action)
-        # self.tanh = nn.Tanh()
-
-
+    @override
     def forward(self, state):
-        # Define the forward pass for the Actor
-        x = self.layer_one(self)
+        """
+        Returns Math Expectation and Standart Deviation
+        of the Random variable distribution of each action component
+        """
+        answer = self.layer_one(state)
+        # answer = self.forward(state)
+        mu, std = answer[: self.dim_action], answer[self.dim_action :]
+        predicted_gauss = Normal(mu, std)
+
+        sample = predicted_gauss.sample()
+        prob = predicted_gauss.log_prob(sample)
+        return sample, prob
+
+    # def get_action(self, state):
         
-        # x = self.input_layer(state)
-        # x = self.leaky_relu1(x)
-
-        # x = self.linear2(x)
-        # x = self.leaky_relu2(x)
-
-        # x = self.linear3(x)
-        # x = self.leaky_relu3(x)
-
-        # x = self.linear4(x)
-        # x = self.leaky_relu4(x)
-        # x = self.linear5(x)
-        # x = self.leaky_relu5(x)
-
-        # x = self.linear6(x)
-        # x = self.leaky_relu6(x)
-
-        # x = self.linear7(x)
-        # x = self.leaky_relu7(x)
-
-        # x = self.linear8(x)
-        # x = self.leaky_relu8(x)
-
-        # x = self.linear9(x)
-        # x = self.tanh(x)
-
-        return x
+    #     return sample, prob
 
 
 class Critic(nn.Module):
-    def __init__(self, dim_state):
-        super().__init__() #Actor, self
-        # Define the layers for the Actor network
-        # Example architecture: Dense -> ReLU -> Dense -> Softmax
-        # Adjust the architecture based on your problem
+    def __init__(self, dim_state) -> None:
+        super().__init__()
 
         self.dim_state = dim_state
         self.hidden_dim1 = 64
-
 
         self.layer_one = nn.Sequential(
             nn.Linear(self.dim_state, self.hidden_dim1),
@@ -188,69 +140,12 @@ class Critic(nn.Module):
             nn.ReLU(),
             nn.Linear(self.hidden_dim1, self.hidden_dim1),
             nn.ReLU(),
+            nn.Linear(self.hidden_dim1, 1),
         )
 
-
-        # self.input_layer = nn.Linear(self.dim_state, self.hidden_dim1)
-        # self.relu1 = nn.ReLU()
-
-        # self.linear2 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.relu2 = nn.ReLU()
-
-        # self.linear3 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.relu3 = nn.ReLU()
-
-        # self.linear4 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.relu4 = nn.ReLU()
-
-        # self.linear5 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.relu5 = nn.ReLU()
-
-        # self.linear6 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.relu6 = nn.ReLU()
-
-        # self.linear7 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.relu7 = nn.ReLU()
-
-        # self.linear8 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.relu8 = nn.ReLU()
-
-        # self.linear9 = nn.Linear(self.hidden_dim1, self.hidden_dim1)
-        # self.relu9 = nn.ReLU()
-
-
+    @override
     def forward(self, state):
-        # Define the forward pass for the Actor
-
-        x = self.layer_one(self)
-
-
-        # x = self.input_layer(state)
-        # x = self.relu1(x)
-
-        # x = self.linear2(x)
-        # x = self.relu2(x)
-
-        # x = self.linear3(x)
-        # x = self.relu3(x)
-
-        # x = self.linear4(x)
-        # x = self.leaky_relu4(x)
-        # x = self.linear5(x)
-        # x = self.relu5(x)
-
-        # x = self.linear6(x)
-        # x = self.relu6(x)
-
-        # x = self.linear7(x)
-        # x = self.relu7(x)
-
-        # x = self.linear8(x)
-        # x = self.relu8(x)
-
-        # x = self.linear9(x)
-        # x = self.relu9(x)
-
+        x = self.layer_one(state)
         return x
 
 
@@ -261,32 +156,47 @@ class ActorCritic:
         self.optimizer_actor = optim.Adam(self.actor.parameters(), lr=0.001)
         self.optimizer_critic = optim.Adam(self.critic.parameters(), lr=0.001)
 
-    def train_step(self, state, action, reward, next_state, done):
+    def train_step(self, gamma, state, action, reward, next_state, done):
         state = torch.tensor(state, dtype=torch.float32)
         next_state = torch.tensor(next_state, dtype=torch.float32)
         action = torch.tensor(action, dtype=torch.float32)
         reward = torch.tensor(reward, dtype=torch.float32)
         done = torch.tensor(done, dtype=torch.float32)
 
-        # Calculate TD target
+        value = self.critic(state)
+
+        # value_const = value.detach()
+
+        # Update Actor
+        actions, probs = self.actor(state)
+        actor_loss = - probs * value
+        # ? actor_loss.zero_grad()
+        self.optimizer_actor.zero_grad()
+        actor_loss.backward()
+        self.optimizer_actor.step()
+        # Actor weights updated
+
+        # Calculate TD target δ
         with torch.no_grad():
-            target = reward + (1 - done) * 0.99 * self.critic(next_state)
+            td_error = reward + gamma * self.critic(next_state) - value
 
         # Update Critic
-        value = self.critic(state)
-        critic_loss = nn.MSELoss()(value, target)
+        critic_loss = - td_error * value
         self.optimizer_critic.zero_grad()
         critic_loss.backward()
         self.optimizer_critic.step()
 
-        # Update Actor
-        action_probs = self.actor(state)
-        chosen_action_prob = torch.sum(action_probs * action, dim=1)
-        advantage = target - value
-        actor_loss = -torch.log(chosen_action_prob) * advantage
-        self.optimizer_actor.zero_grad()
-        actor_loss.mean().backward()
-        self.optimizer_actor.step()
+    def train(self, env, num_epochs):
+        # init_state = torch.tensor(state, dtype=torch.float32)
+        # init_next_state = torch.tensor(next_state, dtype=torch.float32)
+        # init_action = torch.tensor(action, dtype=torch.float32)
+        # init_reward = torch.tensor(reward, dtype=torch.float32)
+        # init_done = torch.tensor(done, dtype=torch.float32)
+        for epoch in range(num_epochs):
+            self.train_step(...)
+
+
+
 
 # Assuming you have environment and state_dim defined
 env = your_environment_creation_function()
@@ -294,6 +204,7 @@ state_dim = env.observation_space.shape[0]
 num_actions = env.action_space.n
 
 actor_critic_agent = ActorCritic(num_actions)
+
 
 # Main training loop
 def train_actor_critic(env, actor_critic, num_episodes=1000):
@@ -304,13 +215,19 @@ def train_actor_critic(env, actor_critic, num_episodes=1000):
         while not done:
             state = np.reshape(state, [1, -1])  # Reshape to (1, state_dim)
             action_probs = actor_critic.actor(torch.tensor(state, dtype=torch.float32))
-            action = np.random.choice(np.arange(len(action_probs.detach().numpy()[0])), p=action_probs.detach().numpy()[0])
+            action = np.random.choice(
+                np.arange(len(action_probs.detach().numpy()[0])),
+                p=action_probs.detach().numpy()[0],
+            )
 
             next_state, reward, done, _ = env.step(action)
 
-            actor_critic.train_step(state, torch.tensor(action), reward, next_state, done)
+            actor_critic.train_step(
+                state, torch.tensor(action), reward, next_state, done
+            )
 
             state = next_state
+
 
 # Example usage
 train_actor_critic(env, actor_critic_agent)
@@ -325,14 +242,18 @@ def train_actor_critic(env, actor_critic, num_episodes=1000):
         while True:
             # Select action from the Actor
             action_probs = actor_critic.actor(state, training=False)
-            action = np.random.choice(np.arange(len(action_probs[0])), p=action_probs.numpy()[0])
+            action = np.random.choice(
+                np.arange(len(action_probs[0])), p=action_probs.numpy()[0]
+            )
 
             # Take the selected action
             next_state, reward, done, _ = env.step(action)
             next_state = np.reshape(next_state, [1, -1])  # Reshape to (1, state_dim)
 
             # Train the Actor-Critic
-            actor_critic.train_step(state, tf.one_hot(action, env.action_space.n), reward, next_state, done)
+            actor_critic.train_step(
+                state, tf.one_hot(action, env.action_space.n), reward, next_state, done
+            )
 
             if done:
                 break

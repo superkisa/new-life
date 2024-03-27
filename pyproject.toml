@@ -3,7 +3,7 @@ line-length = 88
 target-version = ["py311"]
 
 [tool.ruff]
-# src = ["src", "tests"]
+src = ["libs"]
 line-length = 88
 target-version = "py311"
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
