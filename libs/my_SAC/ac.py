@@ -1,10 +1,14 @@
 from collections import deque
+from functools import reduce
 
 import numpy as np
 import torch
 from torch import nn, optim
 from torch.distributions.normal import Normal
+from torch.utils.tensorboard import SummaryWriter
 from typing_extensions import override
+
+writer = SummaryWriter()
 
 
 class ReplayBuffer:
@@ -114,7 +118,8 @@ class Actor(nn.Module):
         """
         answer = self.layer_one(state)
         # answer = self.forward(state)
-        mu, std = answer[: self.dim_action], answer[self.dim_action :]
+        mu, std = answer[:, : self.dim_action], answer[:, self.dim_action :]
+        torch.clamp_(std, min=1e-6, max=1)
         predicted_gauss = Normal(mu, std)
 
         sample = predicted_gauss.sample()
@@ -122,7 +127,7 @@ class Actor(nn.Module):
         return sample, prob
 
     # def get_action(self, state):
-        
+
     #     return sample, prob
 
 
@@ -150,18 +155,26 @@ class Critic(nn.Module):
 
 
 class ActorCritic:
-    def __init__(self, dim_state, dim_action):
+    def __init__(self, env):
+        self.env = env
+        dim_state = reduce(lambda x, y: x * y, self.env.observation_space.shape)
+        dim_action = reduce(lambda x, y: x * y, self.env.action_space.shape)
         self.actor = Actor(dim_state, dim_action)
         self.critic = Critic(dim_state)
         self.optimizer_actor = optim.Adam(self.actor.parameters(), lr=0.001)
         self.optimizer_critic = optim.Adam(self.critic.parameters(), lr=0.001)
 
-    def train_step(self, gamma, state, action, reward, next_state, done):
-        state = torch.tensor(state, dtype=torch.float32)
+        self.step_n = 0
+        self.reward = []
+
+    def train_step(self, gamma, state, action, reward, next_state):
+        self.step_n += 1
+
+        # state = torch.tensor(state, dtype=torch.float32)
         next_state = torch.tensor(next_state, dtype=torch.float32)
         action = torch.tensor(action, dtype=torch.float32)
         reward = torch.tensor(reward, dtype=torch.float32)
-        done = torch.tensor(done, dtype=torch.float32)
+        # done = torch.tensor(done, dtype=torch.float32)
 
         value = self.critic(state)
 
@@ -169,99 +182,99 @@ class ActorCritic:
 
         # Update Actor
         actions, probs = self.actor(state)
-        actor_loss = - probs * value
+        actor_loss = torch.sum(-probs * value.detach())
         # ? actor_loss.zero_grad()
         self.optimizer_actor.zero_grad()
-        actor_loss.backward()
+        writer.add_scalar("Loss/ActorLoss", actor_loss, self.step_n)
+        actor_loss.backward(retain_graph=False)
         self.optimizer_actor.step()
         # Actor weights updated
+        # value.grad.zero_()
 
         # Calculate TD target δ
         with torch.no_grad():
-            td_error = reward + gamma * self.critic(next_state) - value
+            td_error = (
+                reward + gamma * self.critic(next_state).detach() - value.detach()
+            )
 
         # Update Critic
-        critic_loss = - td_error * value
+        critic_loss = -td_error * value
         self.optimizer_critic.zero_grad()
+        writer.add_scalar("Loss/CriticLoss", critic_loss, self.step_n)
         critic_loss.backward()
         self.optimizer_critic.step()
 
-    def train(self, env, num_epochs):
+    def train(self, num_epochs):
         # init_state = torch.tensor(state, dtype=torch.float32)
         # init_next_state = torch.tensor(next_state, dtype=torch.float32)
         # init_action = torch.tensor(action, dtype=torch.float32)
         # init_reward = torch.tensor(reward, dtype=torch.float32)
         # init_done = torch.tensor(done, dtype=torch.float32)
+        action_info = self.env.action_space
+        action_shape = action_info.shape
+        action_min = action_info.low
+        action_max = action_info.high
+        self.reward = []
+
+        # s0, inform = env.reset()
+
         for epoch in range(num_epochs):
-            self.train_step(...)
+            s0, inform = self.env.reset()
+            s0 = torch.from_numpy(s0).view(1, -1).to(torch.float32)
+            a0, prob_a0 = self.actor(s0)
+            torch.clamp_(a0, min=-1, max=1)
+            a0 = a0.view(8).numpy()
+            # a0[np.greater(a0, action_max)] = action_max[np.greater(a0, action_max)]
+            # a0[np.less(a0, action_min)] = action_max[np.less(a0, action_min)]
+            s1, r1, terminated, truncated, inform = self.env.step(a0)
+            rewardy = r1
+            while not (terminated) and not (truncated):
+                self.train_step(
+                    gamma=0.99, state=s0, action=a0, reward=r1, next_state=s1
+                )
+                s0 = torch.from_numpy(s1).view(1, -1).to(torch.float32)
+                a0, prob_a0 = self.actor(s0)
+                torch.clamp_(a0, min=-1, max=1)
+                a0 = a0.view(8).numpy()
+                # big_mask = np.greater(action_max, a0)
+                # small_mask = np.less(a0, action_max)
+                # a0[big_mask] = action_max[big_mask]
+                # a0[small_mask] = action_max[small_mask]
+                s1, r1, terminated, truncated, inform = self.env.step(a0)
+                rewardy += r1
+            self.reward.append(rewardy)
+            writer.add_scalar("Reward/train", rewardy, epoch)
+            rewardy = 0
+        writer.flush()
 
+    def demonstrate(self, num_epochs):
+        # init_state = torch.tensor(state, dtype=torch.float32)
+        # init_next_state = torch.tensor(next_state, dtype=torch.float32)
+        # init_action = torch.tensor(action, dtype=torch.float32)
+        # init_reward = torch.tensor(reward, dtype=torch.float32)
+        # init_done = torch.tensor(done, dtype=torch.float32)
+        action_info = self.env.action_space
+        action_shape = action_info.shape
+        action_min = action_info.low
+        action_max = action_info.high
 
+        # s0, inform = env.reset()
 
-
-# Assuming you have environment and state_dim defined
-env = your_environment_creation_function()
-state_dim = env.observation_space.shape[0]
-num_actions = env.action_space.n
-
-actor_critic_agent = ActorCritic(num_actions)
-
-
-# Main training loop
-def train_actor_critic(env, actor_critic, num_episodes=1000):
-    for episode in range(num_episodes):
-        state = env.reset()
-        done = False
-
-        while not done:
-            state = np.reshape(state, [1, -1])  # Reshape to (1, state_dim)
-            action_probs = actor_critic.actor(torch.tensor(state, dtype=torch.float32))
-            action = np.random.choice(
-                np.arange(len(action_probs.detach().numpy()[0])),
-                p=action_probs.detach().numpy()[0],
-            )
-
-            next_state, reward, done, _ = env.step(action)
-
-            actor_critic.train_step(
-                state, torch.tensor(action), reward, next_state, done
-            )
-
-            state = next_state
-
-
-# Example usage
-train_actor_critic(env, actor_critic_agent)
-
-
-# Main training loop
-def train_actor_critic(env, actor_critic, num_episodes=1000):
-    for episode in range(num_episodes):
-        state = env.reset()
-        state = np.reshape(state, [1, -1])  # Reshape to (1, state_dim)
-
-        while True:
-            # Select action from the Actor
-            action_probs = actor_critic.actor(state, training=False)
-            action = np.random.choice(
-                np.arange(len(action_probs[0])), p=action_probs.numpy()[0]
-            )
-
-            # Take the selected action
-            next_state, reward, done, _ = env.step(action)
-            next_state = np.reshape(next_state, [1, -1])  # Reshape to (1, state_dim)
-
-            # Train the Actor-Critic
-            actor_critic.train_step(
-                state, tf.one_hot(action, env.action_space.n), reward, next_state, done
-            )
-
-            if done:
-                break
-
-            state = next_state
-
-
-# Example usage:
-# env = your_environment_creation_function()
-# actor_critic_agent = ActorCritic(num_actions=env.action_space.n)
-# train_actor_critic(env, actor_critic_agent, num_episodes=1000)
+        for epoch in range(num_epochs):
+            s0, inform = self.env.reset()
+            s0 = torch.from_numpy(s0).view(1, -1).to(torch.float32)
+            a0, prob_a0 = self.actor(s0)
+            torch.clamp_(a0, min=-1, max=1)
+            a0 = a0.view(8).numpy()
+            # a0[np.greater(a0, action_max)] = action_max[np.greater(a0, action_max)]
+            # a0[np.less(a0, action_min)] = action_max[np.less(a0, action_min)]
+            s1, r1, terminated, truncated, inform = self.env.step(a0)
+            while not (terminated) and not (truncated):
+                s0 = torch.from_numpy(s1).view(1, -1).to(torch.float32)
+                a0, prob_a0 = self.actor(s0)
+                print(a0)
+                torch.clamp_(a0, min=-1, max=1)
+                a0 = a0.view(8).numpy()
+                # a0[np.greater(a0, action_max)] = action_max[np.greater(a0, action_max)]
+                # a0[np.less(a0, action_max)] = action_max[np.less(a0, action_max)]
+                s1, r1, terminated, truncated, inform = self.env.step(a0)

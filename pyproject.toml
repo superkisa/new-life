@@ -1,13 +1,9 @@
-[tool.black]
-line-length = 88
-target-version = ["py311"]
-
 [tool.ruff]
 src = ["libs"]
-line-length = 88
+line-length = 100
 target-version = "py311"
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
-select = [
+lint.select = [
     "E",  # pycodestyle
     "F",  # pyflakes
     "UP", # pyupgrade
@@ -20,12 +16,13 @@ select = [
     "B",   # flake8-bugbear
     "PT",  # flake8-pytest-style
 ]
-ignore = [
+lint.ignore = [
     "F722",     # Syntax error in forward annotation
     "PLR0913",
 ]
 
-# [tool.ruff.per-file-ignores]
+[tool.ruff.per-file-ignores]
+"*.ipynb" = ["F401"]
 # "test_custom_list.py" = ["RUF005"]
 
 # [tool.ruff.isort]

@@ -1,3 +1,7 @@
 {
-    "python.analysis.typeCheckingMode": "basic"
+  "python.analysis.typeCheckingMode": "basic",
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "pyproject.toml": ".gitignore, requirements.txt, cspell.json"
+  }
 }
