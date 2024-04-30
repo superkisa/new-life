@@ -1,0 +1,69 @@
+name: ml311
+channels:
+  - conda-forge
+  - nvidia
+  - pytorch
+  - fastai
+dependencies:
+  - python=3.11.*
+
+  # ? numeric
+  - conda-forge::numpy
+  - conda-forge::einops
+  - conda-forge::scipy
+  - conda-forge::pandas
+  - conda-forge::scikit-learn
+  - conda-forge::scikit-image
+  - conda-forge::pillow
+  - conda-forge::jaxtyping
+
+  # ? plots
+  - conda-forge::matplotlib
+  - conda-forge::seaborn
+
+  # ? torch
+  - pytorch::pytorch>=2.1.1
+  - pytorch::pytorch-cuda=12.1
+  - pytorch::torchvision
+  - conda-forge::torchinfo
+  - conda-forge::pytorch-lightning
+
+  # ? MLops
+  - conda-forge::tensorboard
+  - fastai::fastai
+
+  # ? jupyter
+  - conda-forge::ipykernel
+  - conda-forge::ipywidgets
+  - conda-forge::notebook
+
+  # ? 🤗
+  - conda-forge::transformers
+  - conda-forge::datasets
+  - conda-forge::huggingface_hub
+
+  # ? RL libs
+  - conda-forge::gymnasium-all
+  - conda-forge::stable-baselines3
+  - conda-forge::pygame
+  # - conda-forge::mujoco-python<3 # ? not needed, since mujoco is incorporated
+
+  # ? NLP libs
+  - conda-forge::spacy
+
+  # ? web
+  - conda-forge::httpx
+
+  # ? misc
+  - conda-forge::tqdm
+  - conda-forge::rich
+  - conda-forge::beartype
+  - conda-forge::typing_extensions
+  - conda-forge::pydantic
+  - conda-forge::h5py
+  - conda-forge::ujson
+  - conda-forge::pydot
+  - conda-forge::openpyxl
+
+  # - pip:
+  #   - "aiohttp[speedups]"

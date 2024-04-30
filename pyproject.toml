@@ -17,7 +17,8 @@ lint.select = [
     "PT",  # flake8-pytest-style
 ]
 lint.ignore = [
-    "F722",     # Syntax error in forward annotation
+    "F722",    # Syntax error in forward annotation
+    "F821",
     "PLR0913",
 ]
 
@@ -25,5 +26,8 @@ lint.ignore = [
 "*.ipynb" = ["F401"]
 # "test_custom_list.py" = ["RUF005"]
 
-# [tool.ruff.isort]
-# known-first-party = ["server", "client"]
+[tool.ruff.isort]
+known-first-party = ["libs.my_sac"]
+
+[tool.pyright]
+reportPrivateImportUsage = false

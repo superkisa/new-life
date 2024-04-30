@@ -6,6 +6,7 @@ import torch
 from torch import nn, optim
 from torch.distributions.normal import Normal
 from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
 from typing_extensions import override
 
 writer = SummaryWriter()
@@ -218,12 +219,13 @@ class ActorCritic:
 
         # s0, inform = env.reset()
 
-        for epoch in range(num_epochs):
+        for epoch in tqdm(range(num_epochs)):
             s0, inform = self.env.reset()
             s0 = torch.from_numpy(s0).view(1, -1).to(torch.float32)
             a0, prob_a0 = self.actor(s0)
             torch.clamp_(a0, min=-1, max=1)
-            a0 = a0.view(8).numpy()
+            # a0 = a0.view(8).numpy()
+            a0 = a0.flatten().numpy()
             # a0[np.greater(a0, action_max)] = action_max[np.greater(a0, action_max)]
             # a0[np.less(a0, action_min)] = action_max[np.less(a0, action_min)]
             s1, r1, terminated, truncated, inform = self.env.step(a0)
@@ -235,7 +237,8 @@ class ActorCritic:
                 s0 = torch.from_numpy(s1).view(1, -1).to(torch.float32)
                 a0, prob_a0 = self.actor(s0)
                 torch.clamp_(a0, min=-1, max=1)
-                a0 = a0.view(8).numpy()
+                # a0 = a0.view(8).numpy()
+                a0 = a0.flatten().numpy()
                 # big_mask = np.greater(action_max, a0)
                 # small_mask = np.less(a0, action_max)
                 # a0[big_mask] = action_max[big_mask]
@@ -265,7 +268,8 @@ class ActorCritic:
             s0 = torch.from_numpy(s0).view(1, -1).to(torch.float32)
             a0, prob_a0 = self.actor(s0)
             torch.clamp_(a0, min=-1, max=1)
-            a0 = a0.view(8).numpy()
+            a0 = a0.flatten().numpy()
+            # a0 = a0.view(8).numpy()
             # a0[np.greater(a0, action_max)] = action_max[np.greater(a0, action_max)]
             # a0[np.less(a0, action_min)] = action_max[np.less(a0, action_min)]
             s1, r1, terminated, truncated, inform = self.env.step(a0)
@@ -274,7 +278,8 @@ class ActorCritic:
                 a0, prob_a0 = self.actor(s0)
                 print(a0)
                 torch.clamp_(a0, min=-1, max=1)
-                a0 = a0.view(8).numpy()
+                a0 = a0.flatten().numpy()
+                # a0 = a0.view(8).numpy()
                 # a0[np.greater(a0, action_max)] = action_max[np.greater(a0, action_max)]
                 # a0[np.less(a0, action_max)] = action_max[np.less(a0, action_max)]
                 s1, r1, terminated, truncated, inform = self.env.step(a0)
