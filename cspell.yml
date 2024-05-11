@@ -1,38 +1,8 @@
-words:
-  - berts
-  - cudnn
-  - einops
-  - gelu
-  - httpx
-  - idxes
-  - imlength
-  - imshow
-  - imsize
+dictionaries:
+  - python
+ignoreWords:
   - ipynb
-  - ipywidgets
-  - isort
-  - jaxtyped
-  - jaxtyping
-  - Mujoco
-  - obses
-  - openpyxl
-  - pooler
-  - probs
-  - pycodestyle
-  - pydantic
-  - pydocstyle
-  - pydot
-  - pyflakes
-  - pygame
-  - pylint
-  - pyproject
-  - pyright
+  - berts
   - pyupgrade
   - relu
   - reparameterization
-  - rlkit
-  - rsample
-  - spacy
-  - ujson
-  - unsqueeze
-  - Yarats

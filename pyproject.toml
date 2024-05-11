@@ -1,33 +1,131 @@
+[project]
+name = "new-life"
+version = "0.1.0"
+description = "Contains code of the master's thesis on the subject of 'Transfer learning in locomotion problem via masked self-attention mechanism'."
+requires-python = ">= 3.11"
+dependencies = ["tensordict", "torchrl"]
+readme = "README.md"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.pixi.project]
+channels = ["nvidia", "conda-forge", "pytorch", "fastai"]
+platforms = ["linux-64", "win-64"]
+
+[tool.pixi.dependencies]
+[tool.pixi.feature.numeric.dependencies] # ? numeric
+numpy = { version = "*", channel = "conda-forge" }
+einops = { version = "*", channel = "conda-forge" }
+scipy = { version = "*", channel = "conda-forge" }
+pandas = { version = "*", channel = "conda-forge" }
+scikit-learn = { version = "*", channel = "conda-forge" }
+pillow = { version = "*", channel = "conda-forge" }
+jaxtyping = { version = "*", channel = "conda-forge" }
+
+[tool.pixi.feature.plots.dependencies] # ? plots
+matplotlib = { version = "*", channel = "conda-forge" }
+
+[tool.pixi.feature.torch.dependencies] # ? torch
+pytorch = { version = ">=2.1.1", channel = "pytorch" }
+pytorch-cuda = { version = "12.1", channel = "pytorch" }
+torchvision = { version = "*", channel = "pytorch" }
+torchinfo = { version = "*", channel = "conda-forge" }
+pytorch-lightning = { version = "*", channel = "conda-forge" }
+
+[tool.pixi.feature.mlops.dependencies] # ? MLOps
+tensorboard = { version = "*", channel = "conda-forge" }
+
+[tool.pixi.feature.jupyter.dependencies] # ? jupyter
+ipykernel = { version = "*", channel = "conda-forge" }
+ipywidgets = { version = "*", channel = "conda-forge" }
+
+[tool.pixi.feature.huggingface.dependencies] # ? 🤗
+transformers = { version = "*", channel = "conda-forge" }
+datasets = { version = "*", channel = "conda-forge" }
+huggingface_hub = { version = "*", channel = "conda-forge" }
+
+[tool.pixi.feature.rl_libs.dependencies] # ? RL libs
+gymnasium-all = { version = "*", channel = "conda-forge" }
+stable-baselines3 = { version = "*", channel = "conda-forge" }
+
+[tool.pixi.feature.web.dependencies] # ? web
+httpx = { version = "*", channel = "conda-forge" }
+
+[tool.pixi.feature.misc.dependencies] # ? misc
+tqdm = { version = "*", channel = "conda-forge" }
+rich = { version = "*", channel = "conda-forge" }
+beartype = { version = "*", channel = "conda-forge" }
+typing_extensions = { version = "*", channel = "conda-forge" }
+
+[tool.pixi.pypi-dependencies]
+template-ml-project = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { features = [
+    "misc",
+    "numeric",
+    "plots",
+    "torch",
+    # "mlops",
+    "jupyter",
+    "huggingface",
+    "rl_libs",
+    # "web",
+], solve-group = "default" }
+
+[tool.pixi.tasks]
+
 [tool.ruff]
 src = ["libs"]
 line-length = 100
 target-version = "py311"
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
-lint.select = [
-    "E",  # pycodestyle
-    "F",  # pyflakes
-    "UP", # pyupgrade
+
+[tool.ruff.lint]
+per-file-ignores = { "*.ipynb" = [
+    "F401",
+    "E402",
+    "PLE1142",
+    "PLR2004",
+], "*.pyi" = [
+    "F401",
+] }
+select = [
     # "D",   # pydocstyle
-    "I",   # isort
-    "PL",  # pylint
-    "RUF", # ruff-specific
-    "N",   # pep8-naming
-    "C4",  # flake8-comprehensions
-    "B",   # flake8-bugbear
-    "PT",  # flake8-pytest-style
-]
-lint.ignore = [
-    "F722",    # Syntax error in forward annotation
-    "F821",
-    "PLR0913",
-]
+    # "ANN", # flake8-annotations
+    "TCH", # flake8-type-checking
+    "FBT", # flake8-boolean-trap
 
-[tool.ruff.per-file-ignores]
-"*.ipynb" = ["F401"]
-# "test_custom_list.py" = ["RUF005"]
-
-[tool.ruff.isort]
-known-first-party = ["libs.my_sac"]
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "UP",   # pyupgrade
+    "I",    # isort
+    "PL",   # pylint
+    "RUF",  # ruff-specific
+    "N",    # pep8-naming
+    "C4",   # flake8-comprehensions
+    "B",    # flake8-bugbear
+    "PTH",  # flake8-use-pathlib
+    "TRY",  # tryceratops
+    "PERF", # Perflint 
+    "FURB", # refurb 
+    "PT",   # flake8-pytest-style
+]
+ignore = [
+    "RUF001", # ambiguous cyrillic letters
+    "RUF002", # ambiguous cyrillic letters
+    "ANN101", # missing-type-self #? deprecated
+    "D202",   # no-blank-line-after-function
+]
 
 [tool.pyright]
-reportPrivateImportUsage = false
+pythonVersion = "3.11"
+venvPath = "./.pixi/envs"
+reportMissingImports = true
+reportMissingTypeStubs = true
+
+#? cSpell Configuration:
+# cspell: words pixi einops jaxtyping ipywidgets pygame httpx pydantic openpyxl
+# cspell: words torchrl mlops tryceratops FURB
