@@ -4,6 +4,8 @@ import os
 import random
 import time
 from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 
 import gymnasium as gym
 import numpy as np
@@ -14,7 +16,6 @@ from torch import nn, optim
 from torch.utils.tensorboard import SummaryWriter  # type: ignore
 from transformers import DistilBertConfig, DistilBertModel
 
-from datetime import datetime
 
 @dataclass
 class Args:
@@ -266,7 +267,7 @@ def main(  # noqa: PLR0912, PLR0915
         "|param|value|\n|-|-|\n%s"
         % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
     )
-    
+
     # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -454,11 +455,16 @@ def main(  # noqa: PLR0912, PLR0915
                 if args.autotune:
                     writer.add_scalar("losses/alpha_loss", alpha_loss.item(), global_step)
 
+    Path()
     torch.save(actor.state_dict(), "weights/actor_" + str(n_legs) + "legs_" + date_time + ".pt")
     torch.save(qf1.state_dict(), "weights/qf1_" + str(n_legs) + "legs_" + date_time + ".pt")
     torch.save(qf2.state_dict(), "weights/qf2_" + str(n_legs) + "legs_" + date_time + ".pt")
-    torch.save(qf1_target.state_dict(), "weights/qf1_target_" + str(n_legs) + "legs_" + date_time + ".pt")
-    torch.save(qf2_target.state_dict(), "weights/qf2_target_" + str(n_legs) + "legs_" + date_time + ".pt")
+    torch.save(
+        qf1_target.state_dict(), "weights/qf1_target_" + str(n_legs) + "legs_" + date_time + ".pt"
+    )
+    torch.save(
+        qf2_target.state_dict(), "weights/qf2_target_" + str(n_legs) + "legs_" + date_time + ".pt"
+    )
     envs.close()
     writer.close()
 
@@ -469,23 +475,35 @@ if __name__ == "__main__":
         env,
         4,
         9,
-        torch.from_numpy(np.array([[1] * 6 + [0, 1, 0, 1, 0, 1, 0] + [1] * 7 + [0, 1, 0, 1, 0, 1, 0],
-                                   [1] * 7 + [0] * 6 + [1] * 8 + [0] * 6,
-                                   [1] * 5 + [0] * 2 + [1] * 2 + [0] * 4 + [1] * 6 + [0] * 2 + [1] * 2 + [0] * 4,
-                                   [1] * 5 + [0] * 4 + [1] * 2 + [0] * 2 + [1] * 6 + [0] * 4 + [1] * 2 + [0] * 2,
-                                   [1] * 5 + [0] * 6 + [1] * 2 + [0] * 0 + [1] * 6 + [0] * 6 + [1] * 2 + [0] * 0,
-                                   [0] * 5 + [1] * 2 + [0] * 12 + [1] * 2 + [0] * 6,
-                                   [0] * 7 + [1] * 2 + [0] * 12 + [1] * 2 + [0] * 4,
-                                   [0] * 9 + [1] * 2 + [0] * 12 + [1] * 2 + [0] * 2,
-                                   [0] * 11 + [1] * 2 + [0] * 12 + [1] * 2 + [0] * 0])).to(torch.int64),  # type: ignore
-        torch.from_numpy(np.array([[1] * 5 + [0] * 8 + [1] * 6 + [0] * 8,
-                                   [0] * 5 + [1] + [0] * 13 + [1] + [0] * 7,
-                                   [0] * 6 + [1] + [0] * 13 + [1] + [0] * 6,
-                                   [0] * 7 + [1] + [0] * 13 + [1] + [0] * 5,
-                                   [0] * 8 + [1] + [0] * 13 + [1] + [0] * 4,
-                                   [0] * 9 + [1] + [0] * 13 + [1] + [0] * 3,
-                                   [0] * 10 + [1] + [0] * 13 + [1] + [0] * 2,
-                                   [0] * 11 + [1] + [0] * 13 + [1] + [0] * 1,
-                                   [0] * 12 + [1] + [0] * 13 + [1] + [0] * 0])).to(torch.int64),  # type: ignore
+        torch.from_numpy(
+            np.array(
+                [
+                    [1] * 6 + [0, 1, 0, 1, 0, 1, 0] + [1] * 7 + [0, 1, 0, 1, 0, 1, 0],
+                    [1] * 7 + [0] * 6 + [1] * 8 + [0] * 6,
+                    [1] * 5 + [0] * 2 + [1] * 2 + [0] * 4 + [1] * 6 + [0] * 2 + [1] * 2 + [0] * 4,
+                    [1] * 5 + [0] * 4 + [1] * 2 + [0] * 2 + [1] * 6 + [0] * 4 + [1] * 2 + [0] * 2,
+                    [1] * 5 + [0] * 6 + [1] * 2 + [0] * 0 + [1] * 6 + [0] * 6 + [1] * 2 + [0] * 0,
+                    [0] * 5 + [1] * 2 + [0] * 12 + [1] * 2 + [0] * 6,
+                    [0] * 7 + [1] * 2 + [0] * 12 + [1] * 2 + [0] * 4,
+                    [0] * 9 + [1] * 2 + [0] * 12 + [1] * 2 + [0] * 2,
+                    [0] * 11 + [1] * 2 + [0] * 12 + [1] * 2 + [0] * 0,
+                ]
+            )
+        ).to(torch.int64),  # type: ignore
+        torch.from_numpy(
+            np.array(
+                [
+                    [1] * 5 + [0] * 8 + [1] * 6 + [0] * 8,
+                    [0] * 5 + [1] + [0] * 13 + [1] + [0] * 7,
+                    [0] * 6 + [1] + [0] * 13 + [1] + [0] * 6,
+                    [0] * 7 + [1] + [0] * 13 + [1] + [0] * 5,
+                    [0] * 8 + [1] + [0] * 13 + [1] + [0] * 4,
+                    [0] * 9 + [1] + [0] * 13 + [1] + [0] * 3,
+                    [0] * 10 + [1] + [0] * 13 + [1] + [0] * 2,
+                    [0] * 11 + [1] + [0] * 13 + [1] + [0] * 1,
+                    [0] * 12 + [1] + [0] * 13 + [1] + [0] * 0,
+                ]
+            )
+        ).to(torch.int64),  # type: ignore
         Args(env_id=env, learning_starts=500, batch_size=1),
     )
