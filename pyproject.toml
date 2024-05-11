@@ -3,12 +3,15 @@ name = "new-life"
 version = "0.1.0"
 description = "Contains code of the master's thesis on the subject of 'Transfer learning in locomotion problem via masked self-attention mechanism'."
 requires-python = ">= 3.11"
-dependencies = ["tensordict", "torchrl"]
+dependencies = ["tensordict"]
 readme = "README.md"
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "libs"}
 
 [tool.pixi.project]
 channels = ["nvidia", "conda-forge", "pytorch", "fastai"]

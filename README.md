@@ -27,6 +27,16 @@ The main implementation code is located in `libs/bert_sac/` directory, in `libs/
   <figcaption>BERT attention scheme.</figcaption>
 </figure>
 
+t - torso
+fl - front left leg
+fr - front right leg
+bl - back left leg
+br - back right leg
+
+| ![space-1.jpg](http://www.storywarren.com/wp-content/uploads/2016/09/space-1.jpg) | 
+|:--:| 
+| *Space* |
+
 ## References
 
 1. [MuJoCo's Ant-v4 (Gymnasium)](https://gymnasium.farama.org/environments/mujoco/ant/)
