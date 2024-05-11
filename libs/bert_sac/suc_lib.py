@@ -249,7 +249,7 @@ class Actor(nn.Module):
         return action, log_prob, mean
 
 
-def main(  # noqa: PLR0912, PLR0915
+def main(
     env,
     n_legs: int,
     num_struct_elements: int,
