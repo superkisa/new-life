@@ -6,3 +6,5 @@ ignoreWords:
   - pyupgrade
   - relu
   - reparameterization
+words:
+  - cudnn

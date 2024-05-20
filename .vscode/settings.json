@@ -1,5 +1,6 @@
 {
   "python.analysis.typeCheckingMode": "basic",
+  "python.defaultInterpreterPath": "${workspaceFolder}/.pixi/envs/default",
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
     "pyproject.toml": ".gitignore, requirements.txt, cspell.yml"

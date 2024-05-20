@@ -474,10 +474,10 @@ def main(  # noqa: PLR0912, PLR0915
 if __name__ == "__main__":
     env = "Ant-v4"
     main(
-        env,
-        4,
-        9,
-        torch.from_numpy(
+        env=env,
+        n_legs=4,
+        num_struct_elements=9,
+        att_mask=torch.from_numpy(
             np.array(
                 [
                     [1] * 6 + [0, 1, 0, 1, 0, 1, 0] + [1] * 7 + [0, 1, 0, 1, 0, 1, 0],
@@ -492,7 +492,7 @@ if __name__ == "__main__":
                 ]
             )
         ).to(torch.int64),  # type: ignore
-        torch.from_numpy(
+        components_mask=torch.from_numpy(
             np.array(
                 [
                     [1] * 5 + [0] * 8 + [1] * 6 + [0] * 8,
@@ -507,5 +507,5 @@ if __name__ == "__main__":
                 ]
             )
         ).to(torch.int64),  # type: ignore
-        Args(env_id=env, learning_starts=500, batch_size=1),
+        args=Args(env_id=env, learning_starts=500, batch_size=1),
     )

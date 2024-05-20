@@ -3,7 +3,7 @@ name = "new-life"
 version = "0.1.0"
 description = "Contains code of the master's thesis on the subject of 'Transfer learning in locomotion problem via masked self-attention mechanism'."
 requires-python = ">= 3.11"
-dependencies = ["tensordict"]
+dependencies = ["tensordict", "skrl[torch]"]
 readme = "README.md"
 
 [build-system]
@@ -11,7 +11,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-package-dir = {"" = "libs"}
+package-dir = { "" = "libs" }
 
 [tool.pixi.project]
 channels = ["nvidia", "conda-forge", "pytorch", "fastai"]
@@ -29,6 +29,7 @@ jaxtyping = { version = "*", channel = "conda-forge" }
 
 [tool.pixi.feature.plots.dependencies] # ? plots
 matplotlib = { version = "*", channel = "conda-forge" }
+seaborn = { version = "*", channel = "conda-forge" }
 
 [tool.pixi.feature.torch.dependencies] # ? torch
 pytorch = { version = ">=2.1.1", channel = "pytorch" }
@@ -92,6 +93,7 @@ per-file-ignores = { "*.ipynb" = [
     "E402",
     "PLE1142",
     "PLR2004",
+    "PLR0913",
 ], "*.pyi" = [
     "F401",
 ] }
@@ -126,8 +128,9 @@ ignore = [
 [tool.pyright]
 pythonVersion = "3.11"
 venvPath = "./.pixi/envs"
+reportPrivateImportUsage = false
 reportMissingImports = true
-reportMissingTypeStubs = true
+# reportMissingTypeStubs = true
 
 #? cSpell Configuration:
 # cspell: words pixi einops jaxtyping ipywidgets pygame httpx pydantic openpyxl
