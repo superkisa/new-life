@@ -6,3 +6,6 @@ ignoreWords:
   - pyupgrade
   - relu
   - reparameterization
+words:
+  - jaxtyping
+  - rsample

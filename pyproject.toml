@@ -1,9 +1,12 @@
 [project]
 name = "new-life"
 version = "0.1.0"
-description = "Contains code of the master's thesis on the subject of 'Transfer learning in locomotion problem via masked self-attention mechanism'."
+description = """
+    Contains code of the master's thesis on the subject of \
+    'Transfer learning in locomotion problem via masked self-attention mechanism'. \
+"""
 requires-python = ">= 3.11"
-dependencies = ["tensordict"]
+dependencies = ["tensordict", "pyright"]
 readme = "README.md"
 
 [build-system]
@@ -11,13 +14,15 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-package-dir = {"" = "libs"}
+package-dir = { "" = "libs" }
 
 [tool.pixi.project]
-channels = ["nvidia", "conda-forge", "pytorch", "fastai"]
+channels = ["nvidia", "conda-forge", "pytorch"]
 platforms = ["linux-64", "win-64"]
 
 [tool.pixi.dependencies]
+networkx = { version = "*", channel = "conda-forge" }
+
 [tool.pixi.feature.numeric.dependencies] # ? numeric
 numpy = { version = "*", channel = "conda-forge" }
 einops = { version = "*", channel = "conda-forge" }
@@ -29,13 +34,14 @@ jaxtyping = { version = "*", channel = "conda-forge" }
 
 [tool.pixi.feature.plots.dependencies] # ? plots
 matplotlib = { version = "*", channel = "conda-forge" }
+seaborn = { version = "*", channel = "conda-forge" }
 
 [tool.pixi.feature.torch.dependencies] # ? torch
 pytorch = { version = ">=2.1.1", channel = "pytorch" }
 pytorch-cuda = { version = "12.1", channel = "pytorch" }
 torchvision = { version = "*", channel = "pytorch" }
 torchinfo = { version = "*", channel = "conda-forge" }
-pytorch-lightning = { version = "*", channel = "conda-forge" }
+lightning = { version = "2.2.*", channel = "conda-forge" }
 
 [tool.pixi.feature.mlops.dependencies] # ? MLOps
 tensorboard = { version = "*", channel = "conda-forge" }
@@ -53,12 +59,10 @@ huggingface_hub = { version = "*", channel = "conda-forge" }
 gymnasium-all = { version = "*", channel = "conda-forge" }
 stable-baselines3 = { version = "*", channel = "conda-forge" }
 
-[tool.pixi.feature.web.dependencies] # ? web
-httpx = { version = "*", channel = "conda-forge" }
-
 [tool.pixi.feature.misc.dependencies] # ? misc
 tqdm = { version = "*", channel = "conda-forge" }
 rich = { version = "*", channel = "conda-forge" }
+httpx = { version = "*", channel = "conda-forge" }
 beartype = { version = "*", channel = "conda-forge" }
 typing_extensions = { version = "*", channel = "conda-forge" }
 
@@ -71,11 +75,10 @@ default = { features = [
     "numeric",
     "plots",
     "torch",
-    # "mlops",
+    "mlops",
     "jupyter",
     "huggingface",
     "rl_libs",
-    # "web",
 ], solve-group = "default" }
 
 [tool.pixi.tasks]
@@ -121,14 +124,15 @@ ignore = [
     "RUF002", # ambiguous cyrillic letters
     "ANN101", # missing-type-self #? deprecated
     "D202",   # no-blank-line-after-function
+    "N812",   # lowercase-imported-as-non-lowercase
 ]
 
 [tool.pyright]
 pythonVersion = "3.11"
 venvPath = "./.pixi/envs"
 reportMissingImports = true
-reportMissingTypeStubs = true
+reportMissingTypeStubs = false
 
 #? cSpell Configuration:
 # cspell: words pixi einops jaxtyping ipywidgets pygame httpx pydantic openpyxl
-# cspell: words torchrl mlops tryceratops FURB
+# cspell: words torchrl networkx mlops tryceratops FURB
