@@ -378,35 +378,44 @@ def main(  # noqa: PLR0912, PLR0915
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
 
-        # ALGO LOGIC: training.
+        # ! ALGO LOGIC: training.
         if global_step > args.learning_starts:
             data = rb.sample(args.batch_size)
+            # region #! critic optimize step
             with torch.no_grad():
                 next_state_actions, next_state_log_pi, _ = actor.get_action(data.next_observations)
                 qf1_next_target = qf1_target(data.next_observations, next_state_actions)
                 qf2_next_target = qf2_target(data.next_observations, next_state_actions)
-                min_qf_next_target = (
-                    torch.min(qf1_next_target, qf2_next_target) - alpha * next_state_log_pi
-                )
-                next_q_value = data.rewards.flatten() + (1 - data.dones.flatten()) * args.gamma * (
-                    min_qf_next_target
-                ).view(-1)
 
-            qf1_a_values = qf1(data.observations, data.actions).view(-1)
-            qf2_a_values = qf2(data.observations, data.actions).view(-1)
-            qf1_loss = F.mse_loss(qf1_a_values, next_q_value)
-            qf2_loss = F.mse_loss(qf2_a_values, next_q_value)
+                # * H(P) = 𝔼[- log P]
+                entropy = -alpha * next_state_log_pi  # alpha is a step
+
+                # * Q_next = min(Q_1_target, Q_2_target) + alpha * H
+                future_reward = torch.min(qf1_next_target, qf2_next_target) + entropy
+
+                # * Q_now = reword + gamma * Q_next
+                cum_reward = data.rewards.flatten() + (1 - data.dones.flatten()) * args.gamma * (
+                    future_reward
+                ).view(-1)  # ? shape (?,)
+
+            qf1_a_values = qf1(data.observations, data.actions).view(-1)  # Q_now from qf1 NN
+            qf2_a_values = qf2(data.observations, data.actions).view(-1)  # Q_now from qf2 NN
+
+            # Comparing Q_now from qf1 NN and Q_now counted with reword + gamma * Q_next
+            qf1_loss = F.mse_loss(qf1_a_values, cum_reward)
+            # Comparing Q_now from qf2 NN and Q_now counted with reword + gamma * Q_next
+            qf2_loss = F.mse_loss(qf2_a_values, cum_reward)
             qf_loss = qf1_loss + qf2_loss
 
-            # optimize the model
+            # * optimizing the weights of qf1 and qf2 NNs
             q_optimizer.zero_grad()
             qf_loss.backward()
             q_optimizer.step()
+            # endregion
 
             if global_step % args.policy_frequency == 0:  # TD 3 Delayed update support
-                for _ in range(
-                    args.policy_frequency
-                ):  # compensate for the delay by doing 'actor_update_interval' instead of 1
+                # * compensate for the delay by doing 'actor_update_interval' instead of 1
+                for _ in range(args.policy_frequency):
                     pi, log_pi, _ = actor.get_action(data.observations)
                     qf1_pi = qf1(data.observations, pi)
                     qf2_pi = qf2(data.observations, pi)
@@ -442,7 +451,7 @@ def main(  # noqa: PLR0912, PLR0915
                         args.tau * param.data + (1 - args.tau) * target_param.data
                     )
 
-            if global_step % 100 == 0:
+            if global_step % 100 == 0: # write metrics
                 writer.add_scalar("losses/qf1_values", qf1_a_values.mean().item(), global_step)
                 writer.add_scalar("losses/qf2_values", qf2_a_values.mean().item(), global_step)
                 writer.add_scalar("losses/qf1_loss", qf1_loss.item(), global_step)
@@ -457,7 +466,7 @@ def main(  # noqa: PLR0912, PLR0915
                 if args.autotune:
                     writer.add_scalar("losses/alpha_loss", alpha_loss.item(), global_step)
 
-    Path()
+    #region on exit cleanup
     torch.save(actor.state_dict(), "weights/actor_" + str(n_legs) + "legs_" + date_time + ".pt")
     torch.save(qf1.state_dict(), "weights/qf1_" + str(n_legs) + "legs_" + date_time + ".pt")
     torch.save(qf2.state_dict(), "weights/qf2_" + str(n_legs) + "legs_" + date_time + ".pt")
@@ -469,6 +478,7 @@ def main(  # noqa: PLR0912, PLR0915
     )
     envs.close()
     writer.close()
+    #endregion
 
 
 if __name__ == "__main__":
