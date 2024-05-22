@@ -8,3 +8,5 @@ ignoreWords:
   - reparameterization
 words:
   - cudnn
+  - jaxtyping
+  - randn

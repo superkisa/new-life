@@ -123,6 +123,8 @@ ignore = [
     "RUF002", # ambiguous cyrillic letters
     "ANN101", # missing-type-self #? deprecated
     "D202",   # no-blank-line-after-function
+    "N803",   # invalid-argument-name
+    "N806",   # non-lowercase-variable-in-function
 ]
 
 [tool.pyright]
