@@ -130,6 +130,7 @@ ignore = [
 [tool.pyright]
 pythonVersion = "3.11"
 venvPath = "./.pixi/envs"
+reportPrivateImportUsage = false
 reportMissingImports = true
 reportMissingTypeStubs = false
 

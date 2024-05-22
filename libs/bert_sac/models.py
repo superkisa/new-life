@@ -1,25 +1,29 @@
+from typing import TYPE_CHECKING
+
 import numpy as np
 import torch
-from jaxtyping import Int64
+from jaxtyping import Float, Int64
 from torch import nn
 from torch.nn import functional as F
 from transformers import DistilBertConfig, DistilBertModel
 
+if TYPE_CHECKING:
+    from transformers.modeling_outputs import BaseModelOutput
 
-class CustomModel(nn.Module):
+
+class BertsAttention(nn.Module):
     def __init__(
         self,
         num_struct_elements: int,
         attention_mask: Int64[torch.Tensor, "..."],
         components_mask: Int64[torch.Tensor, "..."],
-        device,
     ):
         super().__init__()
 
         self.num_struct_elements = num_struct_elements
-        self.attention_mask = attention_mask.to(device)
-        self.components_mask = components_mask.to(device)
-        self.ones_vector = torch.ones(self.num_struct_elements, 1).to(device)
+        self.attention_mask = attention_mask
+        self.components_mask = components_mask
+        self.ones_vector = torch.ones(self.num_struct_elements, 1)
 
         self.bert_config = DistilBertConfig(
             vocab_size=10000,
@@ -42,16 +46,16 @@ class CustomModel(nn.Module):
         self.distilbert_1 = DistilBertModel(self.bert_config)
         self.distilbert_2 = DistilBertModel(self.bert_config)
 
-    def forward(self, inputs_embeds: torch.Tensor):
+    def forward(self, inputs_embeds: Float[torch.Tensor, "..."]):
         attention_mask = self.attention_mask
         components_mask = self.components_mask
 
         embeds = inputs_embeds.repeat(self.num_struct_elements, 1)
         embeds.unsqueeze_(-1)
 
-        outputs_1 = self.distilbert_1(
-            inputs_embeds=embeds,
+        outputs_1: BaseModelOutput = self.distilbert_1(
             attention_mask=attention_mask,
+            inputs_embeds=embeds,
         )
 
         last_hidden_state_1 = outputs_1["last_hidden_state"]
@@ -64,17 +68,16 @@ class CustomModel(nn.Module):
 
         input_2 = input_2.view(input_2.size()[0], input_2.size()[1], 1)
 
-        outputs_2 = self.distilbert_2(
-            # input_ids=torch.ones(input_2.size()),
-            inputs_embeds=input_2,
+        outputs_2: BaseModelOutput = self.distilbert_2(
             attention_mask=attention_mask,
+            inputs_embeds=input_2,
         )
         last_hidden_state_2 = outputs_2["last_hidden_state"]
 
         input_2 = torch.sum(last_hidden_state_2, dim=2)
         input_2.mul_(components_mask)
-        # summing through columns
-        input_2 = torch.sum(input_2, dim=0)
+
+        input_2 = torch.sum(input_2, dim=0)  # summing through columns
         return input_2
 
 
@@ -89,11 +92,10 @@ class SoftQNetwork(nn.Module):
     ):
         super().__init__()
 
-        self.preprocess_layer = CustomModel(
+        self.preprocess_layer = BertsAttention(
             num_struct_elements=num_struct_elements,
             attention_mask=att_mask,
             components_mask=components_mask,
-            device=device,
         )
         self.fc1 = nn.Linear(
             np.array(env.single_observation_space.shape).prod()
@@ -125,11 +127,11 @@ class Actor(nn.Module):
         components_mask: Int64[torch.Tensor, "..."],
     ):
         super().__init__()
-        self.preprocess_layer = CustomModel(
+
+        self.preprocess_layer = BertsAttention(
             num_struct_elements=num_struct_elements,
             attention_mask=att_mask,
             components_mask=components_mask,
-            device=device,
         )
         self.fc1 = nn.Linear(np.array(env.single_observation_space.shape).prod(), 256)
         self.fc2 = nn.Linear(256, 256)

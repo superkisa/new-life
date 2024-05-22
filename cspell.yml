@@ -7,5 +7,7 @@ ignoreWords:
   - relu
   - reparameterization
 words:
+  - gelu
   - jaxtyping
+  - probs
   - rsample
