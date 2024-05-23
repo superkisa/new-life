@@ -4,5 +4,8 @@
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
     "pyproject.toml": ".gitignore, requirements.txt, cspell.yml"
+  },
+  "files.exclude": {
+    "**/__pycache__": true
   }
 }
