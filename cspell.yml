@@ -6,7 +6,11 @@ ignoreWords:
   - pyupgrade
   - relu
   - reparameterization
-words:
+  - cfrc
   - cudnn
   - jaxtyping
+  - qpos
+  - qvel
   - randn
+words:
+  - mujoco
