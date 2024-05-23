@@ -7,7 +7,6 @@ ignoreWords:
   - relu
   - reparameterization
 words:
-  - gelu
+  - cudnn
   - jaxtyping
-  - probs
-  - rsample
+  - randn

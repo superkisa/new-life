@@ -16,6 +16,8 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 package-dir = { "" = "libs" }
 
+[tool.pixi.tasks]
+
 [tool.pixi.project]
 channels = ["nvidia", "conda-forge", "pytorch"]
 platforms = ["linux-64", "win-64"]
@@ -81,7 +83,6 @@ default = { features = [
     "rl_libs",
 ], solve-group = "default" }
 
-[tool.pixi.tasks]
 
 [tool.ruff]
 src = ["libs"]
@@ -122,8 +123,11 @@ select = [
 ignore = [
     "RUF001", # ambiguous cyrillic letters
     "RUF002", # ambiguous cyrillic letters
+    "RUF003", # ambiguous-unicode-character-comment
     "ANN101", # missing-type-self #? deprecated
     "D202",   # no-blank-line-after-function
+    "N803",   # invalid-argument-name
+    "N806",   # non-lowercase-variable-in-function
     "N812",   # lowercase-imported-as-non-lowercase
 ]
 
