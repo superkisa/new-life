@@ -46,7 +46,10 @@ class BertsAttention(nn.Module):
         self.distilbert_1 = DistilBertModel(self.bert_config)
         self.distilbert_2 = DistilBertModel(self.bert_config)
 
-    def forward(self, inputs_embeds: Float[torch.Tensor, "..."]):
+    def __call__(self, inputs_embeds: Float[torch.Tensor, "..."]) -> Float[torch.Tensor, "..."]:
+        return super().__call__(inputs_embeds)
+
+    def forward(self, inputs_embeds: Float[torch.Tensor, "..."]) -> Float[torch.Tensor, "..."]:
         attention_mask = self.attention_mask
         components_mask = self.components_mask
 
