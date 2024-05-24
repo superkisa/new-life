@@ -88,7 +88,6 @@ class SoftQNetwork(nn.Module):
     def __init__(
         self,
         env,
-        device,
         num_struct_elements: int,
         att_mask: Int64[torch.Tensor, "..."],
         components_mask: Int64[torch.Tensor, "..."],
@@ -124,7 +123,6 @@ class Actor(nn.Module):
     def __init__(
         self,
         env,
-        device,
         num_struct_elements: int,
         att_mask: Int64[torch.Tensor, "..."],
         components_mask: Int64[torch.Tensor, "..."],
