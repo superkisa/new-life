@@ -8,9 +8,12 @@ ignoreWords:
   - reparameterization
   - cfrc
   - cudnn
-  - jaxtyping
   - qpos
   - qvel
   - randn
+  - hparams
+  - dones
 words:
   - mujoco
+  - probs
+  - jaxtyping

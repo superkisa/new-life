@@ -8856,17 +8856,7 @@ packages:
   name: new-life
   version: 0.1.0
   path: .
-  sha256: d1c53d66a1b799db2f3e35ed64c122121a39519a14b0ef2b8b57f23d2659dd62
-  requires_dist:
-  - tensordict
-  - pyright
-  requires_python: '>=3.11'
-  editable: true
-- kind: pypi
-  name: new-life
-  version: 0.1.0
-  path: .
-  sha256: 3557715be6e07472b5d955bd9593811c6e87be4ec92cf727f76b4e9f4181d601
+  sha256: 2b8517cd648694782c270205b6fcef1bd3a7ad842d7f0e1d90b3ead3a286913b
   requires_dist:
   - tensordict
   - pyright
