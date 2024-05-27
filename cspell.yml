@@ -15,6 +15,7 @@ ignoreWords:
   - dones
   - annot
   - cbar
+  - rsample
 words:
   - jaxtyped
   - jaxtyping

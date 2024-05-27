@@ -12,13 +12,13 @@ from torch.optim import Adam
 from torch.utils.tensorboard import SummaryWriter  # type: ignore
 from tqdm import tqdm
 
-from libs.bert_sac.models import Actor, SoftQNetwork
+from libs.bert_sac.models import Actor, CleanRLActor, SoftQNetwork
 
 
 class AntSAC:
     def __init__(  # noqa: PLR0913
         self,
-        actor_net: type[Actor],
+        actor_net: type[CleanRLActor],
         critic_net: type[SoftQNetwork],
         envs: gym.vector.VectorEnv,
         device: torch.device,
@@ -72,34 +72,13 @@ class AntSAC:
 
         self.actor = actor_net(
             envs,
-            # num_struct_elements=num_struct_elements,
             att_mask=attention_mask,
-            # components_mask=components_mask,
         )
-        self.qf1 = critic_net(
-            envs,
-            # num_struct_elements=num_struct_elements,
-            att_mask=attention_mask,
-            # components_mask=components_mask,
-        )
-        self.qf2 = critic_net(
-            envs,
-            # num_struct_elements=num_struct_elements,
-            att_mask=attention_mask,
-            # components_mask=components_mask,
-        )
-        self.qf1_target = critic_net(
-            envs,
-            # num_struct_elements=num_struct_elements,
-            att_mask=attention_mask,
-            # components_mask=components_mask,
-        )
-        self.qf2_target = critic_net(
-            envs,
-            # num_struct_elements=num_struct_elements,
-            att_mask=attention_mask,
-            # components_mask=components_mask,
-        )
+        self.qf1 = critic_net(att_mask=attention_mask, num_obs=27, num_act=8)
+        self.qf2 = critic_net(att_mask=attention_mask, num_obs=27, num_act=8)
+        self.qf1_target = critic_net(att_mask=attention_mask, num_obs=27, num_act=8)
+        self.qf2_target = critic_net(att_mask=attention_mask, num_obs=27, num_act=8)
+
         self.qf1_target.load_state_dict(self.qf1.state_dict())
         self.qf2_target.load_state_dict(self.qf2.state_dict())
 
@@ -131,6 +110,7 @@ class AntSAC:
 
         # TRY NOT TO MODIFY: start the game
         self.obs, _ = self.envs.reset(seed=self.seed)
+        self.obs = self.obs.reshape((1, -1, 1))
 
         for global_step in tqdm(range(total_timesteps)):
             self.training_step(None, global_step)
@@ -167,14 +147,15 @@ class AntSAC:
                 [self.envs.single_action_space.sample() for _ in range(self.envs.num_envs)]
             )
         else:
-            actions, _, _ = self.actor.get_action(torch.Tensor(self.obs).to(self.device))
+            obs_t = torch.Tensor(self.obs).to(self.device)
+            actions, _, _ = self.actor.get_action(obs_t)
             actions = actions.detach().cpu().numpy()
 
         # TRY NOT TO MODIFY: execute the game and log data.
         next_obs, rewards, terminations, truncations, infos = self.envs.step(actions)
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
-        real_next_obs = next_obs.copy()
+        real_next_obs = next_obs.copy().reshape((1, -1, 1))
         for idx, trunc in enumerate(truncations):
             if trunc:
                 real_next_obs[idx] = infos["final_observation"][idx]
