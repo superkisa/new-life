@@ -122,14 +122,15 @@ select = [
     "PT",   # flake8-pytest-style
 ]
 ignore = [
-    "RUF001", # ambiguous cyrillic letters
-    "RUF002", # ambiguous cyrillic letters
-    "RUF003", # ambiguous-unicode-character-comment
-    "ANN101", # missing-type-self #? deprecated
-    "D202",   # no-blank-line-after-function
-    "N803",   # invalid-argument-name
-    "N806",   # non-lowercase-variable-in-function
-    "N812",   # lowercase-imported-as-non-lowercase
+    "PLR0913", #too-many-arguments
+    "RUF001",  # ambiguous cyrillic letters
+    "RUF002",  # ambiguous cyrillic letters
+    "RUF003",  # ambiguous-unicode-character-comment
+    "ANN101",  # missing-type-self #? deprecated
+    "D202",    # no-blank-line-after-function
+    "N803",    # invalid-argument-name
+    "N806",    # non-lowercase-variable-in-function
+    "N812",    # lowercase-imported-as-non-lowercase
     "F722",
 ]
 
