@@ -23,9 +23,9 @@ class AntSAC:
         envs: gym.vector.VectorEnv,
         device: torch.device,
         *,
-        num_struct_elements: int,
+        # num_struct_elements: int,
         attention_mask: Int64[torch.Tensor, "..."],
-        components_mask: Int64[torch.Tensor, "..."],
+        # components_mask: Int64[torch.Tensor, "..."],
         n_legs: int = 4,
         alpha: float = 0.2,
         replay_buffer_size: int = 1_000_000,
@@ -72,33 +72,33 @@ class AntSAC:
 
         self.actor = actor_net(
             envs,
-            num_struct_elements=num_struct_elements,
+            # num_struct_elements=num_struct_elements,
             att_mask=attention_mask,
-            components_mask=components_mask,
+            # components_mask=components_mask,
         )
         self.qf1 = critic_net(
             envs,
-            num_struct_elements=num_struct_elements,
+            # num_struct_elements=num_struct_elements,
             att_mask=attention_mask,
-            components_mask=components_mask,
+            # components_mask=components_mask,
         )
         self.qf2 = critic_net(
             envs,
-            num_struct_elements=num_struct_elements,
+            # num_struct_elements=num_struct_elements,
             att_mask=attention_mask,
-            components_mask=components_mask,
+            # components_mask=components_mask,
         )
         self.qf1_target = critic_net(
             envs,
-            num_struct_elements=num_struct_elements,
+            # num_struct_elements=num_struct_elements,
             att_mask=attention_mask,
-            components_mask=components_mask,
+            # components_mask=components_mask,
         )
         self.qf2_target = critic_net(
             envs,
-            num_struct_elements=num_struct_elements,
+            # num_struct_elements=num_struct_elements,
             att_mask=attention_mask,
-            components_mask=components_mask,
+            # components_mask=components_mask,
         )
         self.qf1_target.load_state_dict(self.qf1.state_dict())
         self.qf2_target.load_state_dict(self.qf2.state_dict())

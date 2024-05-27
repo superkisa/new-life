@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import torch
 from jaxtyping import Float, Int64
-from torch import nn
+from torch import Tensor, nn
 from torch.nn import functional as F
 from transformers import DistilBertConfig, DistilBertModel
 
@@ -84,36 +84,89 @@ class BertsAttention(nn.Module):
         return input_2
 
 
+class AttentionLayer(nn.Module):
+    def __init__(
+        self, mask: Float[Tensor, "batch num_obs num_obs"], hidden_dim: int, *, bias: bool = False
+    ):
+        """Constructs a new RL-oriented attention layer.
+
+        Args:
+            mask: attention mask of shape `batch num_obs num_obs`
+            hidden_dim: dimension of QKV weights
+        """
+        super().__init__()
+        self.register_buffer("mask", mask)
+        weights_shape = (1, 1, hidden_dim)
+
+        self.W_q = nn.Parameter(torch.randn(weights_shape))
+        self.W_k = nn.Parameter(torch.randn(weights_shape))
+        self.W_v = nn.Parameter(torch.randn(weights_shape))
+
+        self.b_q = nn.Parameter(torch.randn(weights_shape)) if bias else 0.0
+        self.b_k = nn.Parameter(torch.randn(weights_shape)) if bias else 0.0
+        self.b_v = nn.Parameter(torch.randn(weights_shape)) if bias else 0.0
+
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, X: Float[Tensor, "batch num_obs 1"]) -> Float[Tensor, "batch num_obs 1"]:
+        Q = X @ self.W_q + self.b_q
+        K = X @ self.W_k + self.b_k
+        V = X @ self.W_v + self.b_v
+
+        scores = Q @ K.mT
+        masked_scores = scores * self.mask
+        soft_scores = self.softmax(masked_scores)
+        soft_scores_value = soft_scores @ V
+        Z = torch.sum(soft_scores_value, dim=2)
+        return Z.unsqueeze(-1)
+
+
 class SoftQNetwork(nn.Module):
+    """Custom Critic network.
+
+    Attributes:
+        preprocess_layer: attention layer, ℝ `batch × num_obs × 1` -> ℝ `batch × num_obs × 1`
+        fc: fully-connected layer ℝ `batch × num_act+num_obs` -> `batch × 1`
+
+    """
+
     def __init__(
         self,
-        env,
-        num_struct_elements: int,
         att_mask: Int64[torch.Tensor, "..."],
-        components_mask: Int64[torch.Tensor, "..."],
+        num_obs: int,
+        num_act: int,
+        fc_hidden_dim: int = 256,
     ):
         super().__init__()
 
-        self.preprocess_layer = BertsAttention(
-            num_struct_elements=num_struct_elements,
-            attention_mask=att_mask,
-            components_mask=components_mask,
+        self.preprocess_layer = nn.Sequential(
+            AttentionLayer(mask=att_mask, hidden_dim=3),
+            # nn.LogSigmoid(),
+            AttentionLayer(mask=att_mask, hidden_dim=6),
+            # # nn.LogSigmoid(),
+            AttentionLayer(mask=att_mask, hidden_dim=10),
+            # nn.Softmax(dim=1),
         )
-        self.fc1 = nn.Linear(
-            np.array(env.single_observation_space.shape).prod()
-            + np.prod(env.single_action_space.shape),
-            256,
+        # self.fc1 = nn.Linear(num_obs + num_act, fc_hidden_dim)
+        # self.fc2 = nn.Linear(fc_hidden_dim, fc_hidden_dim)
+        # self.fc3 = nn.Linear(fc_hidden_dim, 1)
+        self.fc = nn.Sequential(
+            nn.Linear(num_obs + num_act, fc_hidden_dim),
+            nn.ReLU(),
+            nn.Linear(fc_hidden_dim, fc_hidden_dim),
+            nn.ReLU(),
+            nn.Linear(fc_hidden_dim, 1),
         )
-        self.fc2 = nn.Linear(256, 256)
-        self.fc3 = nn.Linear(256, 1)
 
     def forward(self, obs, action):
         obs = self.preprocess_layer(obs).unsqueeze(0)
+        # obs = torch.sum(obs, dim=0)
         x = torch.cat([obs, action], 1)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
+        out = self.fc(x)
+        # x = F.relu(self.fc1(x))
+        # x = F.relu(self.fc2(x))
+        # x = self.fc3(x)
+        return out
 
 
 class Actor(nn.Module):
@@ -123,17 +176,21 @@ class Actor(nn.Module):
     def __init__(
         self,
         env,
-        num_struct_elements: int,
+        # num_struct_elements: int,
         att_mask: Int64[torch.Tensor, "..."],
-        components_mask: Int64[torch.Tensor, "..."],
+        # components_mask: Int64[torch.Tensor, "..."],
     ):
         super().__init__()
 
-        self.preprocess_layer = BertsAttention(
-            num_struct_elements=num_struct_elements,
-            attention_mask=att_mask,
-            components_mask=components_mask,
+        self.preprocess_layer = nn.Sequential(
+            AttentionLayer(mask=att_mask, hidden_dim=3),
+            # nn.LogSigmoid(),
+            AttentionLayer(mask=att_mask, hidden_dim=6),
+            # # nn.LogSigmoid(),
+            AttentionLayer(mask=att_mask, hidden_dim=10),
+            # nn.Softmax(dim=1),
         )
+
         self.fc1 = nn.Linear(np.array(env.single_observation_space.shape).prod(), 256)
         self.fc2 = nn.Linear(256, 256)
         self.fc_mean = nn.Linear(256, np.prod(env.single_action_space.shape))
@@ -150,6 +207,7 @@ class Actor(nn.Module):
 
     def forward(self, x):
         x = self.preprocess_layer(x).unsqueeze(0)
+        # x = torch.sum(x, dim=0)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         mean = self.fc_mean(x)

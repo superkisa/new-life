@@ -13,7 +13,11 @@ ignoreWords:
   - randn
   - hparams
   - dones
+  - annot
+  - cbar
 words:
+  - jaxtyped
+  - jaxtyping
   - mujoco
   - probs
-  - jaxtyping
+  - unsqueeze

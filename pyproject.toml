@@ -91,7 +91,7 @@ target-version = "py311"
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
 
 [tool.ruff.lint]
-isort = {known-first-party = ["libs"]}
+isort = { known-first-party = ["libs"] }
 per-file-ignores = { "*.ipynb" = [
     "F401",
     "E402",
@@ -130,6 +130,7 @@ ignore = [
     "N803",   # invalid-argument-name
     "N806",   # non-lowercase-variable-in-function
     "N812",   # lowercase-imported-as-non-lowercase
+    "F722",
 ]
 
 [tool.pyright]

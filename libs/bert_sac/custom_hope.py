@@ -182,6 +182,7 @@ class SoftQNetwork(nn.Module):
 
     def forward(self, obs, action):
         obs = self.preprocess_layer(obs).unsqueeze(0)
+        x = torch.sum(obs, dim=0)
         x = torch.cat([obs, action], 1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
@@ -194,7 +195,7 @@ LOG_STD_MIN = -5
 
 
 class Actor(nn.Module):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         env,
         device,
@@ -223,8 +224,9 @@ class Actor(nn.Module):
             torch.tensor((env.action_space.high + env.action_space.low) / 2.0, dtype=torch.float32),
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
         x = self.preprocess_layer(x).unsqueeze(0)
+        x = torch.sum(x, dim=0)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         mean = self.fc_mean(x)
@@ -451,7 +453,7 @@ def main(  # noqa: PLR0912, PLR0915
                         args.tau * param.data + (1 - args.tau) * target_param.data
                     )
 
-            if global_step % 100 == 0: # write metrics
+            if global_step % 100 == 0:  # write metrics
                 writer.add_scalar("losses/qf1_values", qf1_a_values.mean().item(), global_step)
                 writer.add_scalar("losses/qf2_values", qf2_a_values.mean().item(), global_step)
                 writer.add_scalar("losses/qf1_loss", qf1_loss.item(), global_step)
@@ -466,7 +468,7 @@ def main(  # noqa: PLR0912, PLR0915
                 if args.autotune:
                     writer.add_scalar("losses/alpha_loss", alpha_loss.item(), global_step)
 
-    #region on exit cleanup
+    # region on exit cleanup
     torch.save(actor.state_dict(), "weights/actor_" + str(n_legs) + "legs_" + date_time + ".pt")
     torch.save(qf1.state_dict(), "weights/qf1_" + str(n_legs) + "legs_" + date_time + ".pt")
     torch.save(qf2.state_dict(), "weights/qf2_" + str(n_legs) + "legs_" + date_time + ".pt")
@@ -478,7 +480,7 @@ def main(  # noqa: PLR0912, PLR0915
     )
     envs.close()
     writer.close()
-    #endregion
+    # endregion
 
 
 if __name__ == "__main__":
