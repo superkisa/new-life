@@ -17,6 +17,7 @@ ignoreWords:
   - cbar
   - rsample
 words:
+  - hparam
   - jaxtyped
   - jaxtyping
   - mujoco

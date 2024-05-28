@@ -5,8 +5,8 @@ description = """
     Contains code of the master's thesis on the subject of \
     'Transfer learning in locomotion problem via masked self-attention mechanism'. \
 """
-requires-python = ">= 3.11"
-dependencies = ["tensordict", "pyright"]
+requires-python = "==3.11"
+dependencies = ["torchrl==0.4.0", "tensordict==0.4.0", "tensorboard"]
 readme = "README.md"
 
 [build-system]
@@ -17,6 +17,9 @@ build-backend = "setuptools.build_meta"
 package-dir = { "" = "libs" }
 
 [tool.pixi.tasks]
+
+[tool.pixi.activation.env]
+CC = "clang"
 
 [tool.pixi.project]
 channels = ["nvidia", "conda-forge", "pytorch"]
