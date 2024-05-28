@@ -165,3 +165,4 @@ models/
 .venv/
 __pycache__
 runs/
+weights/

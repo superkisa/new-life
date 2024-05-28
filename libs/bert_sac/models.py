@@ -108,7 +108,8 @@ class AttentionLayer(nn.Module):
 
         self.softmax = nn.Softmax(dim=1)
 
-    def forward(self, X: Float[Tensor, "batch num_obs 1"]) -> Float[Tensor, "batch num_obs 1"]:
+    def forward(self, X: Float[Tensor, "batch num_obs"]) -> Float[Tensor, "batch num_obs"]:
+        X = X.unsqueeze(-1)
         Q = X @ self.W_q + self.b_q
         K = X @ self.W_k + self.b_k
         V = X @ self.W_v + self.b_v
@@ -118,15 +119,15 @@ class AttentionLayer(nn.Module):
         soft_scores = self.softmax(masked_scores)
         soft_scores_value = soft_scores @ V
         Z = torch.sum(soft_scores_value, dim=2)
-        return Z.unsqueeze(-1)
+        return Z
 
 
 class SoftQNetwork(nn.Module):
     """Custom Critic network.
 
     Attributes:
-        preprocess_layer: attention layer, ℝ `batch × num_obs × 1` -> ℝ `batch × num_obs × 1`
-        fc: fully-connected layer ℝ `batch × num_act+num_obs` -> `batch × 1`
+        preprocess_layer: attention layer, ℝ `batch × num_obs` -> ℝ `batch × num_obs`
+        fc: fully-connected layer ℝ `batch × num_act+num_obs` -> `batch 1`
 
     """
 
@@ -152,10 +153,12 @@ class SoftQNetwork(nn.Module):
             nn.Linear(fc_hidden_dim, 1),
         )
 
-    def forward(self, obs, action):
+    def forward(
+        self, obs: Float[Tensor, "batch num_obs"], action: Float[Tensor, "batch num_act"]
+    ) -> Float[Tensor, "batch 1"]:
         obs = self.preprocess_layer(obs)
-        x = torch.cat([obs, action], 1)
-        out = self.fc(x.mT)
+        flat_obs_act = torch.cat([obs, action], dim=1)
+        out = self.fc(flat_obs_act)
         return out
 
 

@@ -16,7 +16,7 @@ from libs.bert_sac.models import Actor, CleanRLActor, SoftQNetwork
 
 
 class AntSAC:
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         actor_net: type[CleanRLActor],
         critic_net: type[SoftQNetwork],
@@ -110,7 +110,6 @@ class AntSAC:
 
         # TRY NOT TO MODIFY: start the game
         self.obs, _ = self.envs.reset(seed=self.seed)
-        self.obs = self.obs.reshape((1, -1, 1))
 
         for global_step in tqdm(range(total_timesteps)):
             self.training_step(None, global_step)
@@ -155,7 +154,7 @@ class AntSAC:
         next_obs, rewards, terminations, truncations, infos = self.envs.step(actions)
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
-        real_next_obs = next_obs.copy().reshape((1, -1, 1))
+        real_next_obs = next_obs.copy()
         for idx, trunc in enumerate(truncations):
             if trunc:
                 real_next_obs[idx] = infos["final_observation"][idx]

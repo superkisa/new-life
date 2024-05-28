@@ -8,6 +8,6 @@
   "files.exclude": {
     "**/__pycache__": true
   },
-  // "jupyter.debugJustMyCode": false,
-  // "debugpy.debugJustMyCode": false
+  "jupyter.debugJustMyCode": false,
+  "debugpy.debugJustMyCode": false
 }
