@@ -6,7 +6,9 @@ from typing import Any
 
 import gymnasium as gym
 import numpy as np
+import rich
 import torch
+from rich.panel import Panel
 from stable_baselines3.common.buffers import ReplayBuffer
 from torch.nn import functional as F
 from torch.optim import Adam
@@ -142,24 +144,34 @@ class AntSAC(torch.nn.Module):
 
         writer = self.init_writer()
         hparams = asdict(self.config)
-        writer.add_hparams(hparams, {})
-        # writer.add_text(
-        #     "hyperparameters",
-        #     "|param|value|\n|-|-|\n{}".format(
-        #         "\n".join([f"|{key}|{value}|" for key, value in hparams.items()])
-        #     ),
-        # )
+        # writer.add_hparams(hparams, {})
+        writer.add_text(
+            "hyperparameters",
+            "|param|value|\n|-|-|\n{}".format(
+                "\n".join([f"|{key}|{value}|" for key, value in hparams.items()])
+            ),
+        )
 
         # TRY NOT TO MODIFY: start the game
         self.obs, _ = self.envs.reset(seed=self.seed)
 
-        for step in tqdm(range(self.global_step, total_timesteps)):
-            self.global_step = step
-            self.training_step(None, step)
+        try:
+            for step in tqdm(range(self.global_step, total_timesteps)):
+                self.global_step = step
+                self.training_step(None, step)
+        except KeyboardInterrupt:
+            rich.print(
+                Panel.fit(
+                    "[italic magenta]***[/italic magenta]"
+                    "Training halted!"
+                    "[italic magenta]***[/italic magenta]"
+                    "\n[bold red]Prepare for violence.[bold red]"
+                ),
+            )
+        finally:
+            self.close()
 
-        self.close()
-
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch, batch_idx):  # noqa: PLR0912
         q_optimizer, actor_optimizer = self.optimizers()
 
         # ALGO LOGIC: put action logic here
@@ -175,12 +187,11 @@ class AntSAC(torch.nn.Module):
         # TRY NOT TO MODIFY: execute the game and log data.
         next_obs, rewards, terminations, truncations, infos = self.envs.step(actions)
 
-        if "final_info" in infos:
+        if "final_info" in infos and self.writer:
             info = next(iter(infos["final_info"]))
             # print(f"global_step={batch_idx}, episodic_return={info['episode']['r']}")
-            if self.writer:
-                self.writer.add_scalar("charts/episodic_return", info["episode"]["r"], batch_idx)
-                self.writer.add_scalar("charts/episodic_length", info["episode"]["l"], batch_idx)
+            self.writer.add_scalar("charts/episodic_return", info["episode"]["r"], batch_idx)
+            self.writer.add_scalar("charts/episodic_length", info["episode"]["l"], batch_idx)
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
         real_next_obs = next_obs.copy()
