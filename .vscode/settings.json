@@ -3,9 +3,11 @@
   "python.defaultInterpreterPath": "${workspaceFolder}/.pixi/envs/default",
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
-    "pyproject.toml": ".gitignore, requirements.txt, environment.yml, cspell.yml, pixi.lock"
+    "pyproject.toml": ".gitignore, requirements.txt, cspell.yml"
   },
-  "python.defaultInterpreterPath": "${workspaceFolder}/.pixi/envs/default/bin/python",
+  "files.exclude": {
+    "**/__pycache__": true
+  },
   "jupyter.debugJustMyCode": false,
-  "debugpy.debugJustMyCode": false,
+  "debugpy.debugJustMyCode": false
 }
