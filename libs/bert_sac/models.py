@@ -180,16 +180,22 @@ class Actor(nn.Module):
             *[AttentionLayer(mask=att_mask, hidden_dim=16) for _ in range(num_attention_layers)]
         )
 
-        self.fc1 = nn.Linear(np.array(num_obs).prod(), fc_hidden_dim)
-        self.fc2 = nn.Linear(fc_hidden_dim, fc_hidden_dim)
+        self.fc = nn.Sequential(
+            nn.Linear(np.array(num_obs).prod(), fc_hidden_dim),
+            nn.ReLU(),
+            nn.Linear(fc_hidden_dim, fc_hidden_dim),
+            nn.ReLU(),
+        )
+
+        # self.fc1 = nn.Linear(np.array(num_obs).prod(), fc_hidden_dim)
+        # self.fc2 = nn.Linear(fc_hidden_dim, fc_hidden_dim)
         self.fc_mean = nn.Linear(fc_hidden_dim, num_act)
         self.fc_logstd = nn.Linear(fc_hidden_dim, num_act)
 
     def forward(self, x):
         x = self.preprocess_layer(x)
         # x = torch.sum(x, dim=0)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
+        x = self.fc(x)
         mean = self.fc_mean(x)
         log_std = self.fc_logstd(x)
         log_std = torch.tanh(log_std)

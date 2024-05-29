@@ -126,6 +126,7 @@ class AntSAC(torch.nn.Module):
             envs.single_observation_space,
             envs.single_action_space,
             self.device,
+            n_envs=envs.num_envs,
             handle_timeout_termination=False,
         )
 
@@ -174,7 +175,7 @@ class AntSAC(torch.nn.Module):
         finally:
             self.close()
 
-    def training_step(self, batch, batch_idx):  # noqa: PLR0912
+    def training_step(self, batch, batch_idx):  # noqa: PLR0912, PLR0915
         q_optimizer, actor_optimizer = self.optimizers()
 
         # ALGO LOGIC: put action logic here
@@ -192,10 +193,19 @@ class AntSAC(torch.nn.Module):
 
         if "final_info" in infos and self.writer:
             info = next(iter(infos["final_info"]))
-            # print(f"global_step={batch_idx}, episodic_return={info['episode']['r']}")
-            self.writer.add_scalar("charts/episodic_return", info["episode"]["r"], batch_idx)
-            self.writer.add_scalar("charts/episodic_length", info["episode"]["l"], batch_idx)
-
+            # # print(f"global_step={batch_idx}, episodic_return={info['episode']['r']}")
+            # self.writer.add_scalar("charts/episodic_return", info["episode"]["r"], batch_idx)
+            # self.writer.add_scalar("charts/episodic_length", info["episode"]["l"], batch_idx)
+            for env_num, info in enumerate(infos["final_info"]):
+                if info is not None:
+                    self.writer.add_scalars(
+                        main_tag="charts",
+                        tag_scalar_dict={
+                            f"episodic_return_env-{env_num}": info["episode"]["r"],
+                            f"episodic_length_env-{env_num}": info["episode"]["l"],
+                        },
+                        global_step=batch_idx,
+                    )
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
         real_next_obs = next_obs.copy()
         for idx, trunc in enumerate(truncations):
@@ -274,13 +284,23 @@ class AntSAC(torch.nn.Module):
                     )
 
             if batch_idx % 100 == 0 and self.writer:
-                self.writer.add_scalar("losses/qf1_values", qf1_a_values.mean().item(), batch_idx)
-                self.writer.add_scalar("losses/qf2_values", qf2_a_values.mean().item(), batch_idx)
-                self.writer.add_scalar("losses/qf1_loss", qf1_loss.item(), batch_idx)
-                self.writer.add_scalar("losses/qf2_loss", qf2_loss.item(), batch_idx)
-                self.writer.add_scalar("losses/qf_loss", qf_loss.item() / 2.0, batch_idx)
-                self.writer.add_scalar("losses/actor_loss", actor_loss.item(), batch_idx)
-                self.writer.add_scalar("losses/alpha", self.alpha, batch_idx)
+                # self.writer.add_scalar("losses/qf1_values", qf1_a_values.mean().item(), batch_idx)
+                # self.writer.add_scalar("losses/qf2_values", qf2_a_values.mean().item(), batch_idx)
+                # self.writer.add_scalar("losses/qf1_loss", qf1_loss.item(), batch_idx)
+                # self.writer.add_scalar("losses/qf2_loss", qf2_loss.item(), batch_idx)
+                # self.writer.add_scalar("losses/qf_loss", qf_loss.item() / 2.0, batch_idx)
+                # self.writer.add_scalar("losses/actor_loss", actor_loss.item(), batch_idx)
+                self.writer.add_scalars(
+                    main_tag="losses",
+                    tag_scalar_dict={
+                        "qf1_values": qf1_a_values.mean().item(),
+                        "qf2_values": qf2_a_values.mean().item(),
+                        "qf1_loss": qf1_loss.item(),
+                        "qf2_loss": qf2_loss.item(),
+                        "qf_loss": qf_loss.item() / 2.0,
+                    },
+                    global_step=batch_idx,
+                )
 
             # save checkpoints
             if batch_idx % self.checkpoint_frequency == 0:
