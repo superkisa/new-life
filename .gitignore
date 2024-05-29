@@ -166,3 +166,4 @@ models/
 __pycache__
 runs/
 weights/
+artifacts/

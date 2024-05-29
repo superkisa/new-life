@@ -144,10 +144,10 @@ def make_env(env_id, seed, idx, capture_video, run_name):
     def thunk():
         if capture_video and idx == 0:
             env = gym.make(env_id, render_mode="rgb_array")
-            env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
+            env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")  # type: ignore
         else:
             env = gym.make(env_id)
-        env = gym.wrappers.RecordEpisodeStatistics(env)
+        env = gym.wrappers.RecordEpisodeStatistics(env)  # type: ignore
         env.action_space.seed(seed)
         return env
 
@@ -190,10 +190,6 @@ class SoftQNetwork(nn.Module):
         return x
 
 
-LOG_STD_MAX = 2
-LOG_STD_MIN = -5
-
-
 class Actor(nn.Module):
     def __init__(  # noqa: PLR0913
         self,
@@ -232,9 +228,7 @@ class Actor(nn.Module):
         mean = self.fc_mean(x)
         log_std = self.fc_logstd(x)
         log_std = torch.tanh(log_std)
-        log_std = LOG_STD_MIN + 0.5 * (LOG_STD_MAX - LOG_STD_MIN) * (
-            log_std + 1
-        )  # From SpinUp / Denis Yarats
+        log_std = self.LOG_STD_MIN + 0.5 * (self.LOG_STD_MAX - self.LOG_STD_MIN) * (log_std + 1)
 
         return mean, log_std
 

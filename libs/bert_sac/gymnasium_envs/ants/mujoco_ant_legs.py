@@ -29,7 +29,6 @@ class AntLegsEnv(MujocoEnv, utils.EzPickle):
         contact_force_range=(-1.0, 1.0),
         reset_noise_scale=0.1,
         *,
-        num_obs_shape=23,
         use_contact_forces=False,
         terminate_when_unhealthy=True,
         exclude_current_positions_from_observation=True,
@@ -67,7 +66,7 @@ class AntLegsEnv(MujocoEnv, utils.EzPickle):
             exclude_current_positions_from_observation
         )
 
-        obs_shape = 23
+        obs_shape = 27
         if not exclude_current_positions_from_observation:
             obs_shape += 2
         if use_contact_forces:

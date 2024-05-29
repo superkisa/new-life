@@ -9372,7 +9372,7 @@ packages:
   name: new-life
   version: 0.1.0
   path: .
-  sha256: 9afcb917dca97432167630639633075df908f350c6f6c8250482d05ed473afce
+  sha256: 79fd3a36a62cec57eba43df577878518816dfcaf2f24ee8ad38f3fcdea165000
   requires_dist:
   - torchrl==0.4.0
   - tensordict==0.4.0
@@ -12315,8 +12315,8 @@ packages:
 - kind: pypi
   name: tensordict
   version: 0.4.0
-  url: https://files.pythonhosted.org/packages/03/05/1e55703d723895ee79f3e5414683422d30639951d766280335582546d7b5/tensordict-0.4.0-cp311-cp311-manylinux1_x86_64.whl
-  sha256: 31a11a4740c28dda0f40302c6b234544fdcaf52e352a23802f7f8eaa383e1776
+  url: https://files.pythonhosted.org/packages/f1/ff/6ad6c00fe3d21490aee9af3414a059ba4b9d3ed5214443ec7386ece38baa/tensordict-0.4.0-cp311-cp311-win_amd64.whl
+  sha256: 845b028686af73457572177a263aa06320468b284363c4c5d10598f84fbc68a5
   requires_dist:
   - torch>=2.3.0
   - numpy
@@ -12331,8 +12331,8 @@ packages:
 - kind: pypi
   name: tensordict
   version: 0.4.0
-  url: https://files.pythonhosted.org/packages/f1/ff/6ad6c00fe3d21490aee9af3414a059ba4b9d3ed5214443ec7386ece38baa/tensordict-0.4.0-cp311-cp311-win_amd64.whl
-  sha256: 845b028686af73457572177a263aa06320468b284363c4c5d10598f84fbc68a5
+  url: https://files.pythonhosted.org/packages/03/05/1e55703d723895ee79f3e5414683422d30639951d766280335582546d7b5/tensordict-0.4.0-cp311-cp311-manylinux1_x86_64.whl
+  sha256: 31a11a4740c28dda0f40302c6b234544fdcaf52e352a23802f7f8eaa383e1776
   requires_dist:
   - torch>=2.3.0
   - numpy
@@ -12547,8 +12547,8 @@ packages:
 - kind: pypi
   name: torchrl
   version: 0.4.0
-  url: https://files.pythonhosted.org/packages/d8/99/4f4a8ad9347b69bc9de3767b6633425ad2d77a80dead0b7b77a13b59e13d/torchrl-0.4.0-cp311-cp311-manylinux1_x86_64.whl
-  sha256: 1698c32667f4dab8e31cf7070064d531a527a3c0598014063cee8e3e44e2cbe1
+  url: https://files.pythonhosted.org/packages/8a/d2/d5c8f1ccc5468105a0f1cbe12b33bf2aa6f6fd229ec3fc83c82cf25a3c95/torchrl-0.4.0-cp311-cp311-win_amd64.whl
+  sha256: dc89d183519af55121917a0879806b7565906d538b67202557af70b26930f1bc
   requires_dist:
   - torch>=2.3.0
   - numpy
@@ -12621,8 +12621,8 @@ packages:
 - kind: pypi
   name: torchrl
   version: 0.4.0
-  url: https://files.pythonhosted.org/packages/8a/d2/d5c8f1ccc5468105a0f1cbe12b33bf2aa6f6fd229ec3fc83c82cf25a3c95/torchrl-0.4.0-cp311-cp311-win_amd64.whl
-  sha256: dc89d183519af55121917a0879806b7565906d538b67202557af70b26930f1bc
+  url: https://files.pythonhosted.org/packages/d8/99/4f4a8ad9347b69bc9de3767b6633425ad2d77a80dead0b7b77a13b59e13d/torchrl-0.4.0-cp311-cp311-manylinux1_x86_64.whl
+  sha256: 1698c32667f4dab8e31cf7070064d531a527a3c0598014063cee8e3e44e2cbe1
   requires_dist:
   - torch>=2.3.0
   - numpy
