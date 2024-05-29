@@ -96,7 +96,15 @@ class AntSAC:
             handle_timeout_termination=False,
         )
 
-    def train(self, total_timesteps: int):
+    def train(self, total_timesteps: int, finetune=False, weights_old=[]):
+
+        if finetune:
+            self.actor.load_state_dict(weights_old[0])
+            self.qf1.load_state_dict(weights_old[1])
+            self.qf2.load_state_dict(weights_old[2])
+            self.qf1_target.load_state_dict(weights_old[1])
+            self.qf2_target.load_state_dict(weights_old[2])
+
         date_time = datetime.now().strftime("%Y.%m.%d_%H-%M")
         env_id = self.envs.get_attr("spec")[0].id
         run_name = f"{env_id}__{self.seed}__{int(time.time())}"
