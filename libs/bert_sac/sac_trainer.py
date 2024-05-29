@@ -16,7 +16,7 @@ from torch.utils.tensorboard import SummaryWriter  # type: ignore
 from tqdm import tqdm
 from typing_extensions import override
 
-from libs.bert_sac.models import CleanRLActor, SoftQNetwork
+from bert_sac.models import Actor, SoftQNetwork
 
 
 @dataclass(slots=True, frozen=True)
@@ -52,9 +52,11 @@ class AntSAC(torch.nn.Module):
     @override
     def __init__(
         self,
-        actor_net: type[CleanRLActor],
+        actor_net: type[Actor],
         critic_net: type[SoftQNetwork],
         envs: gym.vector.VectorEnv,
+        num_obs: int,
+        num_act: int,
         *,
         device: torch.device,
         attention_mask: torch.Tensor,
@@ -101,13 +103,14 @@ class AntSAC(torch.nn.Module):
         ), "only continuous action space is supported"
 
         self.actor = actor_net(
-            envs,
             att_mask=attention_mask,
+            num_obs=num_obs,
+            num_act=num_act,
         )
-        self.qf1 = critic_net(att_mask=attention_mask, num_obs=27, num_act=8)
-        self.qf2 = critic_net(att_mask=attention_mask, num_obs=27, num_act=8)
-        self.qf1_target = critic_net(att_mask=attention_mask, num_obs=27, num_act=8)
-        self.qf2_target = critic_net(att_mask=attention_mask, num_obs=27, num_act=8)
+        self.qf1 = critic_net(att_mask=attention_mask, num_obs=num_obs, num_act=num_act)
+        self.qf2 = critic_net(att_mask=attention_mask, num_obs=num_obs, num_act=num_act)
+        self.qf1_target = critic_net(att_mask=attention_mask, num_obs=num_obs, num_act=num_act)
+        self.qf2_target = critic_net(att_mask=attention_mask, num_obs=num_obs, num_act=num_act)
 
         self.qf1_target.load_state_dict(self.qf1.state_dict())
         self.qf2_target.load_state_dict(self.qf2.state_dict())

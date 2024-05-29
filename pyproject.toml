@@ -5,8 +5,8 @@ description = """
     Contains code of the master's thesis on the subject of \
     'Transfer learning in locomotion problem via masked self-attention mechanism'. \
 """
-requires-python = "==3.11"
-dependencies = ["torchrl==0.4.0", "tensordict==0.4.0", "tensorboard"]
+requires-python = "==3.11.*"
+dependencies = ["torchrl==0.4.0", "tensordict==0.4.0"]
 readme = "README.md"
 
 [build-system]
