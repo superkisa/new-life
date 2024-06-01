@@ -156,7 +156,7 @@ class SoftQNetwork(nn.Module):
     def forward(
         self, obs: Float[Tensor, "batch num_obs"], action: Float[Tensor, "batch num_act"]
     ) -> Float[Tensor, "batch 1"]:
-        obs = self.preprocess_layer(obs)
+        # obs = self.preprocess_layer(obs)
         flat_obs_act = torch.cat([obs, action], dim=1)
         out = self.fc(flat_obs_act)
         return out
@@ -193,8 +193,7 @@ class Actor(nn.Module):
         self.fc_logstd = nn.Linear(fc_hidden_dim, num_act)
 
     def forward(self, x):
-        x = self.preprocess_layer(x)
-        # x = torch.sum(x, dim=0)
+        # x = self.preprocess_layer(x)
         x = self.fc(x)
         mean = self.fc_mean(x)
         log_std = self.fc_logstd(x)
@@ -214,6 +213,20 @@ class Actor(nn.Module):
         # Enforcing Action Bound
         log_prob -= torch.log((1 - y_t.pow(2)) + 1e-6)
         log_prob = log_prob.sum(1, keepdim=True)
+        mean = torch.tanh(mean)
+        return action, log_prob, mean
+    
+    def get_action0(self, x):
+        mean, log_std = self(x)
+        std = log_std.exp()
+        normal = torch.distributions.Normal(mean, std)
+        x_t = normal.rsample()  # for reparameterization trick (mean + std * N(0,1))
+        y_t = torch.tanh(x_t)
+        action = y_t
+        log_prob = normal.log_prob(x_t)
+        # Enforcing Action Bound
+        log_prob -= torch.log((1 - y_t.pow(2)) + 1e-6)
+        # log_prob = log_prob.sum(1, keepdim=True)
         mean = torch.tanh(mean)
         return action, log_prob, mean
 

@@ -289,12 +289,18 @@ class AntSAC(torch.nn.Module):
                 # self.writer.add_scalar("losses/qf1_loss", qf1_loss.item(), batch_idx)
                 # self.writer.add_scalar("losses/qf2_loss", qf2_loss.item(), batch_idx)
                 # self.writer.add_scalar("losses/qf_loss", qf_loss.item() / 2.0, batch_idx)
-                # self.writer.add_scalar("losses/actor_loss", actor_loss.item(), batch_idx)
+                self.writer.add_scalar("losses/actor_loss", actor_loss.item(), global_step=batch_idx)
                 self.writer.add_scalars(
                     main_tag="losses",
                     tag_scalar_dict={
                         "qf1_values": qf1_a_values.mean().item(),
                         "qf2_values": qf2_a_values.mean().item(),
+                    },
+                    global_step=batch_idx,
+                )
+                self.writer.add_scalars(
+                    main_tag="losses",
+                    tag_scalar_dict={
                         "qf1_loss": qf1_loss.item(),
                         "qf2_loss": qf2_loss.item(),
                         "qf_loss": qf_loss.item() / 2.0,
