@@ -86,7 +86,7 @@ class BertsAttention(nn.Module):
 
 class AttentionLayer(nn.Module):
     def __init__(
-        self, mask: Float[Tensor, "batch num_obs num_obs"], hidden_dim: int, *, bias: bool = False
+        self, mask: Float[Tensor, "batch num_obs num_obs"], hidden_dim: int, *, bias: bool = True
     ):
         """Constructs a new RL-oriented attention layer.
 
