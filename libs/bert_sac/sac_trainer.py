@@ -57,6 +57,7 @@ class AntSAC(torch.nn.Module):
         envs: gym.vector.VectorEnv,
         num_obs: int,
         num_act: int,
+        num_att_layers: int,
         *,
         device: torch.device,
         attention_mask: torch.Tensor,
@@ -106,11 +107,12 @@ class AntSAC(torch.nn.Module):
             att_mask=attention_mask,
             num_obs=num_obs,
             num_act=num_act,
+            num_attention_layers=num_att_layers
         )
-        self.qf1 = critic_net(att_mask=attention_mask, num_obs=num_obs, num_act=num_act)
-        self.qf2 = critic_net(att_mask=attention_mask, num_obs=num_obs, num_act=num_act)
-        self.qf1_target = critic_net(att_mask=attention_mask, num_obs=num_obs, num_act=num_act)
-        self.qf2_target = critic_net(att_mask=attention_mask, num_obs=num_obs, num_act=num_act)
+        self.qf1 = critic_net(att_mask=attention_mask, num_obs=num_obs, num_act=num_act, num_attention_layers=num_att_layers)
+        self.qf2 = critic_net(att_mask=attention_mask, num_obs=num_obs, num_act=num_act, num_attention_layers=num_att_layers)
+        self.qf1_target = critic_net(att_mask=attention_mask, num_obs=num_obs, num_act=num_act, num_attention_layers=num_att_layers)
+        self.qf2_target = critic_net(att_mask=attention_mask, num_obs=num_obs, num_act=num_act, num_attention_layers=num_att_layers)
 
         self.qf1_target.load_state_dict(self.qf1.state_dict())
         self.qf2_target.load_state_dict(self.qf2.state_dict())
@@ -310,9 +312,9 @@ class AntSAC(torch.nn.Module):
 
             # save checkpoints
             if batch_idx % self.checkpoint_frequency == 0:
-                print("Saving checkpoint...")
+                # print("Saving checkpoint...")
                 self.save_checkpoint(step=batch_idx)
-                print("Checkpoints saved.")
+                # print("Checkpoints saved.")
 
     def optimizers(self):
         return self._q_optimizer, self._actor_optimizer
