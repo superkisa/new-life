@@ -3,7 +3,7 @@
   "python.defaultInterpreterPath": "${workspaceFolder}/.pixi/envs/default",
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
-    "pyproject.toml": ".gitignore, requirements.txt, cspell.yml, .gitattributes"
+    "pyproject.toml": ".gitignore, requirements.txt, cspell.yml, .gitattributes, pixi.lock"
   },
   "files.exclude": {
     "**/__pycache__": true
