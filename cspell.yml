@@ -23,3 +23,5 @@ words:
   - mujoco
   - probs
   - unsqueeze
+  - xlabel
+  - ylabel
