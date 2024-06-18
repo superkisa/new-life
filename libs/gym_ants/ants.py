@@ -21,7 +21,6 @@ class AntLegsEnv(MujocoEnv, utils.EzPickle):
 
     def __init__(
         self,
-        xml_file="ant.xml",
         ctrl_cost_weight=0.5,
         contact_cost_weight=5e-4,
         healthy_reward=1.0,
@@ -29,6 +28,7 @@ class AntLegsEnv(MujocoEnv, utils.EzPickle):
         contact_force_range=(-1.0, 1.0),
         reset_noise_scale=0.1,
         *,
+        xml_file="ant-4.xml",
         num_obs=27,
         use_contact_forces=False,
         terminate_when_unhealthy=True,

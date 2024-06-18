@@ -326,9 +326,9 @@ class AntSAC(torch.nn.Module):
         critic_loss: torch.Tensor | None = None,
     ):
         step = step if step is not None else self.global_step
-        env_id = self.envs.get_attr("spec")[0].id
+        env_id: str = self.envs.get_attr("spec")[0].id
         now = datetime.now().strftime("%Y%m%d-%H%M%S")
-        run_name = f"{env_id}__{self.seed}__{now}"
+        run_name = f"{env_id.replace('/', '-')}__{self.seed}__{now}"
 
         save_path = self.artifact_path.resolve() / "checkpoints"
         save_path.mkdir(parents=True, exist_ok=True)
