@@ -102,9 +102,9 @@ class AttentionLayer(nn.Module):
         self.W_k = nn.Parameter(torch.randn(weights_shape))
         self.W_v = nn.Parameter(torch.randn(weights_shape))
 
-        self.b_q = nn.Parameter(torch.randn(weights_shape)) if bias else 0.0
-        self.b_k = nn.Parameter(torch.randn(weights_shape)) if bias else 0.0
-        self.b_v = nn.Parameter(torch.randn(weights_shape)) if bias else 0.0
+        self.b_q = nn.Parameter(torch.randn(weights_shape)) # if bias else 0.0
+        self.b_k = nn.Parameter(torch.randn(weights_shape)) # if bias else 0.0
+        self.b_v = nn.Parameter(torch.randn(weights_shape)) # if bias else 0.0
 
         self.softmax = nn.Softmax(dim=1)
 
@@ -121,6 +121,31 @@ class AttentionLayer(nn.Module):
         Z = torch.sum(soft_scores_value, dim=2)
         return Z
 
+
+# import torch
+# import torch.nn as nn
+# import torch.nn.functional as F
+
+class SelfAttention(nn.Module):
+    def __init__(self, input_dim: int, mask: Float[Tensor, "batch num_obs num_obs"]):
+        super().__init__()
+        self.input_dim = input_dim
+        self.query = nn.Linear(input_dim, input_dim)
+        self.key = nn.Linear(input_dim, input_dim)
+        self.value = nn.Linear(input_dim, input_dim)
+        self.softmax = nn.Softmax(dim=2)
+        self.mask = mask
+        
+    def forward(self, x):
+        queries = self.query(x)
+        keys = self.key(x)
+        values = self.value(x)
+        # scores = torch.bmm(queries, keys.mT) / (self.input_dim ** 0.5)
+        scores = (keys.mT @ queries) / (self.input_dim ** 0.5)
+        masked_scores = scores * self.mask
+        attention = self.softmax(masked_scores)
+        weighted = torch.bmm(attention, values)
+        return weighted
 
 class SoftQNetwork(nn.Module):
     """Custom Critic network.
@@ -142,7 +167,7 @@ class SoftQNetwork(nn.Module):
         super().__init__()
 
         self.preprocess_layer = nn.Sequential(
-            *[AttentionLayer(mask=att_mask, hidden_dim=16) for _ in range(num_attention_layers)]
+            *[SelfAttention(27, att_mask) for _ in range(num_attention_layers)]
         )
 
         self.fc = nn.Sequential(
@@ -156,7 +181,7 @@ class SoftQNetwork(nn.Module):
     def forward(
         self, obs: Float[Tensor, "batch num_obs"], action: Float[Tensor, "batch num_act"]
     ) -> Float[Tensor, "batch 1"]:
-        # obs = self.preprocess_layer(obs)
+        obs = self.preprocess_layer(obs)
         flat_obs_act = torch.cat([obs, action], dim=1)
         out = self.fc(flat_obs_act)
         return out
@@ -177,7 +202,7 @@ class Actor(nn.Module):
         super().__init__()
 
         self.preprocess_layer = nn.Sequential(
-            *[AttentionLayer(mask=att_mask, hidden_dim=16) for _ in range(num_attention_layers)]
+            *[SelfAttention(27, att_mask) for _ in range(num_attention_layers)]
         )
 
         self.fc = nn.Sequential(
@@ -193,7 +218,7 @@ class Actor(nn.Module):
         self.fc_logstd = nn.Linear(fc_hidden_dim, num_act)
 
     def forward(self, x):
-        # x = self.preprocess_layer(x)
+        x = self.preprocess_layer(x)
         x = self.fc(x)
         mean = self.fc_mean(x)
         log_std = self.fc_logstd(x)
