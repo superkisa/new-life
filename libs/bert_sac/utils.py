@@ -30,8 +30,8 @@ def record_inference(
     )
 
     obs, _ = obs_env.reset()
+    obs = torch.tensor(obs, device=model.device, dtype=torch.float32).unsqueeze(0)
     for _ in tqdm(range(num_steps)):
-        obs = torch.Tensor(obs).to(model.device)
         actions, _, _ = model.actor.get_action0(obs)
         obs, _, terminated, truncated, _ = obs_env.step(
             actions.view(num_actions).detach().cpu().numpy()
